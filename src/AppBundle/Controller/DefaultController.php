@@ -143,4 +143,39 @@ class DefaultController extends Controller
             return new Response("Partie non trouvé", 404);
         }
     }
+
+    /**
+     * @param Request $request
+     *
+     * @Route("/updateMarkedPoints", name="updateMarkedPoints", options={"expose" = true})
+     */
+    public function updateMarkedPoints(Request $request){
+        $em = $this->getDoctrine()->getManager();
+        $repoPlayer = $em->getRepository("AppBundle:Player");
+        $repoMarkedPoint = $em->getRepository("AppBundle:MarkedPoint");
+        $player1 = $repoPlayer->find($request->request->get("idPlayer1"));
+        $player2 = $repoPlayer->find($request->request->get("idPlayer2"));
+        $oldPlateau = $request->request->get("oldPlateau");
+        $currentPlateau = $request->request->get("plateau");
+
+        foreach ($currentPlateau as $keyLigne => $ligne){
+            foreach ($ligne as $keyElement => $element){
+                if($element !== $oldPlateau[$keyLigne][$keyElement]){
+                    $point = $repoMarkedPoint->findOneBy(array(
+                        "ligne" => $keyLigne,
+                        "position" => $keyElement,
+                        "player" => array($player1,$player2)
+                    ));
+
+                    if(empty($element)){
+                        $em->remove($point);
+                    }else{
+                        $point->setPlayer($element[0] === "is-player-one" ? $player1 : $player2);
+                    }
+                }
+            }
+        }
+        $em->flush();
+        die();
+    }
 }

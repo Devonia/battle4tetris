@@ -569,6 +569,9 @@ function removeBlured(){
 }
 
 function refillPlateau(){
+    $("#loading").toggleClass("hidden");
+    var oldPlateau = $.extend(true,{},plateau);
+
     table.find(".element").each(function(){
         if($(this).hasClass('is-player-one') || $(this).hasClass('is-player-two')){
             plateau[$(this).data("ligne")][$(this).data("position")] = $(this).attr("class").match(/is-player[\w-]*\b/);
@@ -576,5 +579,14 @@ function refillPlateau(){
             plateau[$(this).data("ligne")][$(this).data("position")] = null;
         }
     });
+
+    $.ajax({
+        url : Routing.generate("updateMarkedPoints"),
+        method : "POST",
+        data : {idPlayer1 : player1["id"], idPlayer2 : player2["id"], oldPlateau : oldPlateau, plateau : plateau},
+        complete : function(){
+            $("#loading").toggleClass("hidden");
+        }
+    })
 }
 
