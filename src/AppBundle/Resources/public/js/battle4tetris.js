@@ -124,6 +124,7 @@ function init(){
                     changeDisplayedPlayer();
                     highLightValidePlay();
                     initTable();
+                    refillPlateau();
                 }, delay);
             },
             error : function(JQXHR,textStatut, errorText){
@@ -168,7 +169,7 @@ function elementSelected(element,player, delay){
         }, 250, function(){
             bounce(element);
         });
-        plateau[element.data("ligne")][element.data("position")] = "not_empty";
+        plateau[element.data("ligne")][element.data("position")] = element.attr("class").match(/is-player[\w-]*\b/);
         element.off("click");
     },delay);
 }
@@ -548,6 +549,7 @@ function highLightWinCombo(listOfElements){
                 if($(this)[0] === allElement.last()[0]){
                     highLightValidePlay();
                     changePlayer();
+                    refillPlateau();
                 }
             });
         }
@@ -563,6 +565,16 @@ function removeHighLight(){
 function removeBlured(){
     table.find(".blured").each(function(e){
         $(this).removeClass("blured");
+    });
+}
+
+function refillPlateau(){
+    table.find(".element").each(function(){
+        if($(this).hasClass('is-player-one') || $(this).hasClass('is-player-two')){
+            plateau[$(this).data("ligne")][$(this).data("position")] = $(this).attr("class").match(/is-player[\w-]*\b/);
+        }else{
+            plateau[$(this).data("ligne")][$(this).data("position")] = null;
+        }
     });
 }
 
