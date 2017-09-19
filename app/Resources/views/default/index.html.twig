@@ -1,0 +1,237 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div id="container-fluid" class="container-fluid">
+        <div class="row">
+            <div class="col-md-2" id="sideBar">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h2>Node avec l'id
+                            <strong id="elementChange"></strong>
+                            <button id="closeSideBar" style="margin-top: 3%;" type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        </h2>
+                    </div>
+                    <div class="panel-body">
+
+                    </div>
+                </div>
+            </div>
+            <div id="network" class="col-md-12">
+            </div>
+            <div class="modal fade" id="myModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">Préparation du node</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="input-group">
+                                <label class="form-label" for="idNode">Id du node : </label>
+                                <input class="form-control" id="idNode" type="number" name="idNode" />
+                            </div>
+                            <div class="input-group">
+                                <label class="form-label" for="labelNode">Label du node : </label>
+                                <input id="labelNode" class="form-control" type="text" name="labelNode" />
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <button type="button" id="validForm" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.20.1/vis.min.css">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        body,html,#container-fluid, .row{
+            width:100%;
+            height: 100%;
+        }
+
+        .row{margin-top: 1em;}
+        #network{
+            padding-left:0;
+            padding-right:0;
+            border : 1px solid #337ab7;
+        }
+        #sideBar, #network{height: 90%;}
+        #sideBar{
+            z-index:1000000;
+            display:none;
+        }
+        .panel{
+            height: 100%;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    <script
+            src="https://code.jquery.com/jquery-2.2.4.min.js"
+            integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+            crossorigin="anonymous">
+    </script>
+    <script
+            src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+            integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+            crossorigin="anonymous">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.20.1/vis.min.js" type="text/javascript"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var network = null;
+        var container = null;
+        var sideBar = $("#sideBar");
+        var closeSideBar = $("#closeSideBar");
+        var modal = $("#myModal");
+        $(document).on('ready', function(){
+
+            handleCloseSideBar();
+            initialiseNetwork();
+            redrawCanvas(true);
+        });
+
+        function initialiseNetwork(){
+            container = document.getElementById('network');
+            var dataSet = [];
+            var dataEdges = [];
+            for(var i=0; i < 200; i++){
+                dataSet[i] = {id : i,label : 'node ' + i, group : Math.floor(Math.random()*5), cid : Math.floor(Math.random()*5)}
+            }
+            var nodes = new vis.DataSet(dataSet);
+
+            for(var y=0; y < 100; y++){
+                var ramdom = Math.floor(Math.random()*200);
+                var secondRamdom = Math.floor(Math.random()*200);
+                dataEdges[y] = {from:ramdom, to: secondRamdom}
+            }
+            var edges = new vis.DataSet(dataEdges);
+
+            var data = {
+                nodes : nodes,
+                edges : edges
+            };
+
+            var locales = {
+                fr : {
+                    edit: 'Modifier',
+                    del: 'Supprimer la sélection',
+                    back: 'Retour',
+                    addNode: 'Ajouter un noeud',
+                    addEdge: 'Ajouter un lien',
+                    editNode: 'Editer un noeud',
+                    editEdge: 'Editer un lien',
+                    addDescription: 'Cliquer dans un endroit vide pour créer un nouveau noeud',
+                    edgeDescription: 'Cliquer sur un noeud et relier-le à un autre noeuf',
+                    editEdgeDescription: '',
+                    createEdgeError: 'Impossible de relier un cluster.',
+                    deleteClusterError: 'Les clusters ne peuvent pas être supprimés.',
+                    editClusterError: 'Les clusters ne peuvent pas être édités.'
+                }
+            };
+
+            var options = {
+                locales : locales,
+                locale : "fr",
+                clickToUse : true,
+                manipulation : {
+                    enabled : true,
+                    initiallyActive : true,
+                    addNode : function(data,callback){
+                        modal.modal("show");
+                        $("#validForm").on("click", function(){
+                            data.id = $("#idNode").val();
+                            data.label = $("#labelNode").val();
+                            callback(data);
+                            modal.modal("hide");
+                        });
+                    },
+                    editNode : function(data,callback){
+                        $("#idNode").val(data.id).prop('disabled',true);
+                        $("#labelNode").val(data.label);
+                        modal.modal("show");
+                        $("#validForm").on("click", function(){
+                            data.label = $("#labelNode").val();
+                            callback(data);
+                            modal.modal("hide");
+                        });
+                    },
+                    deleteNode : true
+                },
+                interaction : {
+                    keyboard : true,
+                    navigationButtons : true
+                },
+                edges:{
+                    arrows : {
+                        to:     {enabled: true, scaleFactor:1, type:'arrow'},
+                        middle: {enabled: false, scaleFactor:1, type:'arrow'},
+                        from:   {enabled: false, scaleFactor:1, type:'arrow'}
+                    }
+                }
+            };
+
+            var optionsCluster = {
+                joinCondition:function(nodeOptions) {
+                    return nodeOptions.cid === 1;
+                }
+            };
+
+            network = new vis.Network(container, data, options);
+            network.clustering.cluster(optionsCluster);
+            network.on('selectNode', function(properties){
+                var idNode = properties.nodes[0];
+                $("#elementChange").text(idNode);
+                handleSideBar(true);
+                if(network.isCluster(idNode)){
+                    network.openCluster(idNode);
+                }
+            });
+
+            addNode();
+        }
+
+        function redrawCanvas(full){
+            if(full === true){
+                $(container).removeClass("col-md-10").addClass("col-md-12").css("margin-left","15px");
+            }else{
+                $(container).removeClass("col-md-12").addClass("col-md-10").css("margin-left","0px");
+            }
+            network.redraw();
+        }
+
+        function handleSideBar(show){
+            if(sideBar.is(":visible")){
+                if(show === false){
+                    sideBar.hide("slide", {direction:"left"},"slow");
+                    redrawCanvas(true);
+                }
+            }else{
+                if(show === true){
+                    sideBar.show("slide", {direction:"left"},"slow");
+                    redrawCanvas(false);
+                }
+            }
+        }
+
+        function handleCloseSideBar(){
+            closeSideBar.on('click',function(){
+               handleSideBar(false);
+            });
+        }
+
+        function addNode(){
+            $("#addNode").on('click',function(){
+//                network.enableEditMode();
+                network.addNodeMode();
+            });
+        }
+    </script>
+{% endblock %}
