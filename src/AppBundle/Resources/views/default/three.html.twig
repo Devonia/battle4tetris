@@ -2,101 +2,12 @@
 
 {% block title %}Three.JS{% endblock %}
 {% block stylesheets %}
-    <style>
-        body,html,.container-fluid,.row,.col-md-6 { margin: 0; height:95%;width: 100% }
-        canvas { width: 100%; height: 100% }
-
-        @-webkit-keyframes BOUNCE {
-            from {top: 106px;}
-            50%  {top: 86px;}
-            to   {top: 106px;}
-        }
-        
-        @-webkit-keyframes DIV-BORDER {
-            0%   { border-color: orange;box-shadow: 0 0 3px 2px orange; }
-            50%  { border-color: black;box-shadow: 0 0 3px 2px orange; }
-            100% { border-color: orange;box-shadow: 0 0 3px 2px orange; }
-        }
-
-        .table{
-            border-right: 1px solid black;
-            border-left: 1px solid black;
-            border-bottom: 1px solid black;
-            margin-top : 20px;
-            height: 100%;
-        }
-        .table>tbody>tr>td{
-            border-right : 1px solid black;
-        }
-        .table>tbody>tr:not(:first-child)>td{
-            border-top: none;
-        }
-
-        .table>tbody>tr:first-child>td{
-            border-color: black;
-            border-top-color : lightgrey;
-        }
-        .element{
-            border: 1px solid grey;
-            border-radius: 50%;
-            height:100%;
-            /*width: 15%;*/
-        }
-
-        .highlighted{
-            -webkit-transition: all 1s;
-            -webkit-animation: DIV-BORDER 2s infinite;
-        }
-
-        .bouncing{
-            /*position : absolute;*/
-            -webkit-animation: BOUNCE .35s infinite;
-        }
-
-        .blured{
-            filter : blur(2px);
-            "opacity" : 0.5;
-        }
-
-        .panel-primary{
-            margin-top : 20px;
-        }
-        .is-player-one{
-            background-color : red;
-        }
-        .is-player-two{
-            background-color : green;
-        }
-        .formPlayer>.input-group:not(:first-child){
-            margin-top : 10px;
-        }
-
-        .panelReplay input{
-            visibility: hidden;
-        }
-        .panelReplay input:checked + label{
-            background-color: rgba(0,195,254,0.6);
-        }
-        .panelReplay label{
-            cursor: pointer;
-        }
-
-        /*.playerLabel{*/
-            /*padding-left : 0 !important;*/
-        /*}*/
-
-        .losingPDV{
-            font-weight: bold;
-            color : #f70404;
-            font-size: 18px;
-
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" media="all" href="{{ asset("bundles/app/css/style.css") }}" />
 {% endblock %}
 {% block body %}
-    <div class="container-fluid">
+    <div class="container">
         <div class="row">
-            <div class="col-md-6 col-md-offset-3">
+            <div class="col-md-9">
                 <table class="table">
                     <tbody>
                     {% for i in range(0,8) %}
@@ -126,7 +37,7 @@
                                     <p><strong class="player1Label"></strong></p>
                                 </div>
                                 <div class="panel-body">
-                                    <p>Point de vie : <i class="currentPdvPlayer1"></i><i>/20</i></p>
+                                    <p>Point de vie : <i class="currentPdvPlayer1"></i><i>/40</i></p>
                                 </div>
                             </div>
                         </div>
@@ -136,16 +47,20 @@
                                     <p><strong class="player2Label"></strong></p>
                                 </div>
                                 <div class="panel-body">
-                                    <p>Point de vie : <i class="currentPdvPlayer2"></i><i>/20</i></p>
+                                    <p>Point de vie : <i class="currentPdvPlayer2"></i><i>/40</i></p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="panel-footer">
-                        <a class="btn btn-primary" href="{{ path('three') }}">Redémarrer une partie</a>
-                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modalIdPartie">
-                            Sauvegarder la partie
-                        </button>
+                    <div class="panel-footer row">
+                        <div class="col-md-12 text-center">
+                            <a class="btn btn-primary" href="{{ path('three') }}">Redémarrer une partie</a>
+                        </div>
+                        <div class="col-md-12 text-center">
+                            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modalIdPartie">
+                                Sauvegarder la partie
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -231,8 +146,6 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script>
-        var lienLoading = "{{ asset('bundles/app/images/leaf.gif') }}";
-    </script>
+    <script src="{{ asset('bundles/app/js/blockUI.js') }}"></script>
     <script src="{{ asset('bundles/app/js/battle4tetris.js') }}"></script>
 {% endblock %}

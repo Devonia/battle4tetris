@@ -6,6 +6,7 @@ var table = $(".table");
 var idPartie = $(".idPartie").val();
 var plateau = [];
 var alert = $(".messageError");
+var compteurBlock = 0;
 var eventClick = function () {
     checkIfPossibleAction($(this));
     // if(valideMove === true){
@@ -159,18 +160,37 @@ function disableTable(){
 
 function elementSelected(element,player, delay){
     setTimeout(function(){
+        compteurBlock++;
         var currentOffset = element.offset().top;
         var currentWidth = element.width();
         var currentHeight = element.height();
         element.addClass(getPlayerClass(player));
         element.css({position : 'absolute', top : 0, width : currentWidth + "px", height : currentHeight + "px"});
+        /** propriete, durée, easing, complete */
         element.animate({
             top : currentOffset
         }, 250, function(){
             bounce(element);
+            plateau[element.data("ligne")][element.data("position")] = element.attr("class").match(/is-player[\w-]*\b/);
+            element.off("click");
+            if(compteurBlock >= 3){
+                var listOfPotentielElement = searchHighLight();
+                var ramdomizedBlocked = listOfPotentielElement[Math.floor((Math.random() * listOfPotentielElement.length))];
+                var currentRamdomizedOffset = element.offset().top;
+                var currentRamdomizedWidth = element.width();
+                var currentRamdomizedHeight = element.height();
+                ramdomizedBlocked.addClass("blocked");
+                ramdomizedBlocked.css({position : 'absolute', top : 0, width : currentRamdomizedWidth + "px", height : currentRamdomizedHeight + "px"});
+                ramdomizedBlocked.animate({
+                    top : currentRamdomizedOffset
+                }, 250, function(){
+                    bounce(ramdomizedBlocked);
+                });
+                plateau[ramdomizedBlocked.data("ligne")][ramdomizedBlocked.data("position")] = "blocked";
+                ramdomizedBlocked.off("click");
+                compteurBlock = 0;
+            }
         });
-        plateau[element.data("ligne")][element.data("position")] = element.attr("class").match(/is-player[\w-]*\b/);
-        element.off("click");
     },delay);
 }
 
@@ -198,6 +218,17 @@ function changeEnemy(player){
 
 function checkIfPossibleAction(element){
     $("#loading").toggleClass("hidden");
+    table.find("tbody").block({
+        message : null,
+        css : {
+            backgroundColor : "#FEFEFE"
+        },
+        overlayCSS : {
+            backgroundColor : "#FEFEFE",
+            opacity : 0,
+            cursor : "default"
+        }
+    });
     $.ajax({
         url : Routing.generate("checkIfValideMove", {ligne : element.data("ligne"), position : element.data("position")}),
         method : "POST",
@@ -206,14 +237,20 @@ function checkIfPossibleAction(element){
         async : true,
         success : function(response){
             if(response["success"] === true){
+                removeHighLight();
                 elementSelected(element,actualPlayer,0);
                 alert.addClass("hidden");
                 if(checkIfWin(element, getPlayerClass(actualPlayer)) === true){
                     removeHighLight();
-                    highLightWinCombo(poolOfWinElement);
+                    setTimeout(function(){
+                        highLightWinCombo(poolOfWinElement);
+                    },1000);
                 }else{
-                    changePlayer();
-                    highLightValidePlay();
+                    setTimeout(function(){
+                        changePlayer();
+                        highLightValidePlay();
+                        table.find("tbody").unblock();
+                    },750);
                 }
             }else{
                 console.log("WTF o_O?");
@@ -222,20 +259,12 @@ function checkIfPossibleAction(element){
         error : function () {
             changeAlert("alert-danger", actualPlayer["name"] + " souhaite réaliser une action impossible." +
                 "Veuillez sélectionner un rond valide.");
+            table.find("tbody").unblock();
         },
         complete: function(){
             $("#loading").toggleClass("hidden");
         }
     });
-
-    // var position = element.data("position");
-    // var searchedLigne = element.data("ligne") + 1;
-    // var searchedElement = table.find(".element[data-ligne='"+searchedLigne+"'][data-position='"+position+"']");
-    // if(searchedElement.length !== 0){
-    //     return !!(searchedElement.hasClass("is-player-one") || searchedElement.hasClass("is-player-two"));
-    // }else{
-    //     return true;
-    // }
 }
 
 function getPlayerClass(player){
@@ -388,22 +417,29 @@ function changeAlert(classe, message){
 }
 
 function highLightValidePlay(){
-    removeHighLight();
-    setTimeout(searchHighLight, 250);
+    var listOfHighlightableElement = searchHighLight();
+    setTimeout(function(){
+        for(var i = 0; i < listOfHighlightableElement.length;i++){
+            listOfHighlightableElement[i].addClass('highlighted');
+        }
+    },250);
+}
 
-    function searchHighLight(){
-        table.find(".element").each(function(e){
-            var element = $(this);
-            if(!element.hasClass("is-player-one") && !element.hasClass("is-player-two") ){
-                var ligne = element.data('ligne');
-                var position = element.data('position');
-                var comparedElement = table.find(".element[data-ligne='"+(ligne + 1)+"'][data-position='"+position+"']");
-                if(comparedElement.length === 0 || comparedElement.hasClass("is-player-one") || comparedElement.hasClass("is-player-two")){
-                    element.addClass('highlighted');
-                }
+function searchHighLight(){
+    var tabElementValide = [];
+    table.find(".element").each(function(e){
+        var element = $(this);
+        if(!element.hasClass("is-player-one") && !element.hasClass("is-player-two") && !element.hasClass("blocked") ){
+            var ligne = element.data('ligne');
+            var position = element.data('position');
+            var comparedElement = table.find(".element[data-ligne='"+(ligne + 1)+"'][data-position='"+position+"']");
+            if(comparedElement.length === 0 || comparedElement.hasClass("is-player-one") || comparedElement.hasClass("is-player-two") || comparedElement.hasClass("blocked")){
+                tabElementValide.push(element);
+                //element.addClass('highlighted');
             }
-        });
-    }
+        }
+    });
+    return tabElementValide;
 }
 
 function pushWinElement(element){
@@ -439,38 +475,43 @@ function highLightWinCombo(listOfElements){
 
     function dissapearElement(){
         var timer = 250;
+        var playerDoingDamage;
         for(var i=0; i < listOfElements.length; i++){
             timeOutDissapear(listOfElements[i]);
             timer = timer + 250;
         }
 
+        $.ajax({
+            url : Routing.generate("savePlayer", {idPlayer : actualEnemy["id"], damage : listOfElements.length}),
+            method : "POST",
+            success : function(data){
+                var pdvElement = null;
+                changeEnemy(playerDoingDamage);
+                if(actualEnemy === player1){
+                    pdvElement = $(".currentPdvPlayer1");
+                }else{
+                    pdvElement = $(".currentPdvPlayer2");
+                }
+                pdvElement.addClass("losingPDV");
+                var value = parseInt(pdvElement.text());
+                pdvElement.text(value - listOfElements.length);
+                actualEnemy["life"] = actualEnemy["life"] - listOfElements.length;
+                pdvElement.removeClass("losingPDV", {duration : 350});
+            }
+        });
+
         function timeOutDissapear(element){
             setTimeout(function(e){
                 element.removeClass("is-player-one is-player-two",{duration : 350});
-                dealDamage(element);
+                playerDoingDamage = getPlayerByClass(getPlayerClassByElement(element));
+                // dealDamage(element);
             },timer);
         }
     }
 
-    function dealDamage(element){
-        var playerDoingDamage = getPlayerByClass(getPlayerClassByElement(element));
-        var pdvElement = null;
-        changeEnemy(playerDoingDamage);
-        if(actualEnemy === player1){
-            pdvElement = $(".currentPdvPlayer1");
-        }else{
-            pdvElement = $(".currentPdvPlayer2");
-        }
-        pdvElement.addClass("losingPDV");
-        var value = parseInt(pdvElement.text());
-        pdvElement.text(value - 1);
-        actualEnemy["life"]--;
-        $.ajax({
-            url : Routing.generate("savePlayer", {idPlayer : actualEnemy["id"], life : actualEnemy["life"]}),
-            method : "POST"
-        });
-        pdvElement.removeClass("losingPDV", {duration : 350});
-    }
+    // function dealDamage(element){
+    //
+    // }
 
     function moveOthersElements(){
         for(var i=0; i < listOfElements.length; i++){
@@ -487,8 +528,8 @@ function highLightWinCombo(listOfElements){
                     var currentOffset = nextElement.offset().top;
                     var currentWidth = nextElement.width();
                     var currentHeight = nextElement.height();
-                    if (nextElement.hasClass('is-player-one') || nextElement.hasClass('is-player-two')) {
-                        if ((!element.hasClass('is-player-one') && !element.hasClass('is-player-two')) || element.hasClass("willMove")) {
+                    if (nextElement.hasClass('is-player-one') || nextElement.hasClass('is-player-two') || nextElement.hasClass("blocked")) {
+                        if ((!element.hasClass('is-player-one') && !element.hasClass('is-player-two')) && !element.hasClass("blocked") || element.hasClass("willMove")) {
                             nextElement.addClass("willMove");
                             var offsetTopNextPosition = element.offset().top;
                             nextElement.css({
@@ -550,6 +591,7 @@ function highLightWinCombo(listOfElements){
                     highLightValidePlay();
                     changePlayer();
                     refillPlateau();
+                    table.find("tbody").unblock();
                 }
             });
         }

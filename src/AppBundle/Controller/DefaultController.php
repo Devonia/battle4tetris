@@ -52,8 +52,8 @@ class DefaultController extends Controller
     public function initPlayer($P1Name, $P2Name, $idPartie){
         $em = $this->getDoctrine()->getManager();
         $partie = $em->getRepository("AppBundle:Partie")->find($idPartie);
-        $player1 = new Player($P1Name,$partie, 20);
-        $player2 = new Player($P2Name,$partie, 20);
+        $player1 = new Player($P1Name,$partie, 40);
+        $player2 = new Player($P2Name,$partie, 40);
         $em->persist($player1);
         $em->persist($player2);
         $em->flush();
@@ -65,13 +65,14 @@ class DefaultController extends Controller
     /**
      * @param Request $request
      *
-     * @Route("/savePlayer/{idPlayer}/{life}", name="savePlayer", options={"expose"=true})
+     * @Route("/savePlayer/{idPlayer}/{damage}", name="savePlayer", options={"expose"=true})
      */
-    public function savePlayer($idPlayer, $life){
+    public function savePlayer($idPlayer, $damage){
         $em = $this->getDoctrine()->getManager();
         $repoPlayer =  $em->getRepository("AppBundle:Player");
+        /** @var Player $player */
         $player = $repoPlayer->find($idPlayer);
-        $player->setLife($life);
+        $player->setLife($player->getLife() - $damage);
         $em->persist($player);
         $em->flush();
         die();
