@@ -176,9 +176,9 @@ function elementSelected(element,player, delay){
             if(compteurBlock >= 3){
                 var listOfPotentielElement = searchHighLight();
                 var ramdomizedBlocked = listOfPotentielElement[Math.floor((Math.random() * listOfPotentielElement.length))];
-                var currentRamdomizedOffset = element.offset().top;
-                var currentRamdomizedWidth = element.width();
-                var currentRamdomizedHeight = element.height();
+                var currentRamdomizedOffset = ramdomizedBlocked.offset().top;
+                var currentRamdomizedWidth = ramdomizedBlocked.width();
+                var currentRamdomizedHeight = ramdomizedBlocked.height();
                 ramdomizedBlocked.addClass("blocked");
                 ramdomizedBlocked.css({position : 'absolute', top : 0, width : currentRamdomizedWidth + "px", height : currentRamdomizedHeight + "px"});
                 ramdomizedBlocked.animate({
