@@ -112,7 +112,7 @@ class DefaultController extends Controller
                 $markedPoint = new MarkedPoint($ligne,$position,$player);
                 $em->persist($markedPoint);
                 $em->flush();
-                echo json_encode(array("success" => true));
+                echo json_encode(array("success" => true, "markedPoint" => $markedPoint));
             }else{
                 return new Response("Move non valide", 400);
             }
@@ -120,9 +120,23 @@ class DefaultController extends Controller
             $markedPoint = new MarkedPoint($ligne,$position,$player);
             $em->persist($markedPoint);
             $em->flush();
-            echo json_encode(array("success" => true));
+            echo json_encode(array("success" => true, "markedPoint" => $markedPoint));
         }
 
+        die();
+    }
+
+    /**
+     *
+     *  @Route("/createBlockElement/{ligne}/{position}", name="createBlockElement", options={"expose"=true})
+     *
+     */
+    public function createBlockElement(Request $request, $ligne,$position){
+        $em = $this->getDoctrine()->getManager();
+        $markedPoint = new MarkedPoint($ligne,$position,null, true);
+        $em->persist($markedPoint);
+        $em->flush();
+        echo json_encode(array("success" => true, "markedPoint" => $markedPoint));
         die();
     }
 
@@ -162,16 +176,18 @@ class DefaultController extends Controller
         foreach ($currentPlateau as $keyLigne => $ligne){
             foreach ($ligne as $keyElement => $element){
                 if($element !== $oldPlateau[$keyLigne][$keyElement]){
-                    $point = $repoMarkedPoint->findOneBy(array(
-                        "ligne" => $keyLigne,
-                        "position" => $keyElement,
-                        "player" => array($player1,$player2)
-                    ));
-
+                    $point = $repoMarkedPoint->find($element["id"]);
                     if(empty($element)){
                         $em->remove($point);
                     }else{
-                        $point->setPlayer($element[0] === "is-player-one" ? $player1 : $player2);
+                        if($element["state"] === "blocked"){
+                            $point->setPlayer(null);
+                            $point->setBlocked(true);
+                        }else{
+                            $point->setPlayer($element[0] === "is-player-one" ? $player1 : $player2);
+                            $point->setBlocked(false);
+                        }
+
                     }
                 }
             }

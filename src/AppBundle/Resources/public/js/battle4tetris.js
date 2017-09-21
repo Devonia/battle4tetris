@@ -158,40 +158,57 @@ function disableTable(){
     });
 }
 
-function elementSelected(element,player, delay){
+function elementSelected(element,player, delay, objectMarkedPoint){
     setTimeout(function(){
         compteurBlock++;
         var currentOffset = element.offset().top;
         var currentWidth = element.width();
         var currentHeight = element.height();
         element.addClass(getPlayerClass(player));
+        element.attr("data-id", objectMarkedPoint["id"]);
         element.css({position : 'absolute', top : 0, width : currentWidth + "px", height : currentHeight + "px"});
         /** propriete, durée, easing, complete */
         element.animate({
             top : currentOffset
         }, 250, function(){
             bounce(element);
-            plateau[element.data("ligne")][element.data("position")] = element.attr("class").match(/is-player[\w-]*\b/);
+            plateau[element.data("ligne")][element.data("position")] = {"id" : objectMarkedPoint["id"], "state" : element.attr("class").match(/is-player[\w-]*\b/)};
             element.off("click");
             if(compteurBlock >= 3){
-                var listOfPotentielElement = searchHighLight();
-                var ramdomizedBlocked = listOfPotentielElement[Math.floor((Math.random() * listOfPotentielElement.length))];
-                var currentRamdomizedOffset = ramdomizedBlocked.offset().top;
-                var currentRamdomizedWidth = ramdomizedBlocked.width();
-                var currentRamdomizedHeight = ramdomizedBlocked.height();
-                ramdomizedBlocked.addClass("blocked");
-                ramdomizedBlocked.css({position : 'absolute', top : 0, width : currentRamdomizedWidth + "px", height : currentRamdomizedHeight + "px"});
-                ramdomizedBlocked.animate({
-                    top : currentRamdomizedOffset
-                }, 250, function(){
-                    bounce(ramdomizedBlocked);
-                });
-                plateau[ramdomizedBlocked.data("ligne")][ramdomizedBlocked.data("position")] = "blocked";
-                ramdomizedBlocked.off("click");
-                compteurBlock = 0;
+                elementBlock();
             }
         });
     },delay);
+}
+
+function elementBlock(){
+    var listOfPotentielElement = searchHighLight();
+    var ramdomizedBlocked = listOfPotentielElement[Math.floor((Math.random() * listOfPotentielElement.length))];
+    $.ajax({
+        url: Routing.generate("createBlockElement", {
+            ligne: ramdomizedBlocked.data("ligne"),
+            position: ramdomizedBlocked.data("position")
+        }),
+        method: "POST",
+        dataType: "json",
+        async: true,
+        success : function(data){
+            ramdomizedBlocked.attr("data-id", data["markedPoint"]["id"]);
+            var currentRamdomizedOffset = ramdomizedBlocked.offset().top;
+            var currentRamdomizedWidth = ramdomizedBlocked.width();
+            var currentRamdomizedHeight = ramdomizedBlocked.height();
+            ramdomizedBlocked.addClass("blocked");
+            ramdomizedBlocked.css({position : 'absolute', top : 0, width : currentRamdomizedWidth + "px", height : currentRamdomizedHeight + "px"});
+            ramdomizedBlocked.animate({
+                top : currentRamdomizedOffset
+            }, 250, function(){
+                bounce(ramdomizedBlocked);
+            });
+            ramdomizedBlocked.off("click");
+            plateau[ramdomizedBlocked.data("ligne")][ramdomizedBlocked.data("position")] = {"id" : data["id"], "state" :"blocked" };
+        }
+    });
+    compteurBlock = 0;
 }
 
 function changeDisplayedPlayer(){
@@ -238,19 +255,19 @@ function checkIfPossibleAction(element){
         success : function(response){
             if(response["success"] === true){
                 removeHighLight();
-                elementSelected(element,actualPlayer,0);
+                elementSelected(element,actualPlayer,0, response["markedPoint"]);
                 alert.addClass("hidden");
                 if(checkIfWin(element, getPlayerClass(actualPlayer)) === true){
                     removeHighLight();
                     setTimeout(function(){
                         highLightWinCombo(poolOfWinElement);
-                    },1000);
+                    },1500);
                 }else{
                     setTimeout(function(){
                         changePlayer();
                         highLightValidePlay();
                         table.find("tbody").unblock();
-                    },750);
+                    },1500);
                 }
             }else{
                 console.log("WTF o_O?");
@@ -543,7 +560,7 @@ function highLightWinCombo(listOfElements){
                             }, 300, function () {
                                 nextElement.css({position: 'initial', width: "100%", height: "100%"});
                                 element.addClass(nextElement.attr("class"));
-                                nextElement.removeClass("is-player-one is-player-two");
+                                nextElement.removeClass("is-player-one is-player-two blocked");
 
                             });
                         }
@@ -616,7 +633,10 @@ function refillPlateau(){
 
     table.find(".element").each(function(){
         if($(this).hasClass('is-player-one') || $(this).hasClass('is-player-two')){
-            plateau[$(this).data("ligne")][$(this).data("position")] = $(this).attr("class").match(/is-player[\w-]*\b/);
+            plateau[$(this).data("ligne")][$(this).data("position")] =
+                {"id" : $(this).data("id"), "state" : $(this).attr("class").match(/is-player[\w-]*\b/)};
+        }else if($(this).hasClass("blocked")){
+            plateau[$(this).data("ligne")][$(this).data("position")] = {"id" : $(this).data("id"), "state" : "blocked"};
         }else{
             plateau[$(this).data("ligne")][$(this).data("position")] = null;
         }

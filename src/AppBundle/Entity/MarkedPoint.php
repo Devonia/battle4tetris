@@ -36,8 +36,15 @@ class MarkedPoint implements \JsonSerializable
 
     /**
      * @ORM\ManyToOne(targetEntity="AppBundle\Entity\Player", inversedBy="points")
+     * @ORM\JoinColumn(nullable=true)
      */
     private $player;
+
+    /**
+     * @var boolean $blocked
+     * @ORM\Column(type="boolean")
+     */
+    private $blocked;
 
 
     /**
@@ -48,11 +55,12 @@ class MarkedPoint implements \JsonSerializable
         return $this->id;
     }
 
-    function __construct($ligne,$position, Player $player)
+    function __construct($ligne,$position, $player = null, $isBlocked = false)
     {
         $this->ligne = $ligne;
         $this->position = $position;
         $this->player = $player;
+        $this->blocked = $isBlocked;
     }
 
 
@@ -82,6 +90,14 @@ class MarkedPoint implements \JsonSerializable
     }
 
     /**
+     * @return bool
+     */
+    public function isBlocked()
+    {
+        return $this->blocked;
+    }
+
+    /**
      * @param mixed $id
      */
     public function setId($id)
@@ -105,6 +121,14 @@ class MarkedPoint implements \JsonSerializable
     public function setPlayer($player)
     {
         $this->player = $player;
+    }
+
+    /**
+     * @param bool $blocked
+     */
+    public function setBlocked($blocked)
+    {
+        $this->blocked = $blocked;
     }
 
     /**
