@@ -5,9 +5,54 @@
     <link rel="stylesheet" type="text/css" media="all" href="{{ asset("bundles/app/css/style.css") }}" />
 {% endblock %}
 {% block body %}
-    <div class="container">
+    <div class="container-fluid game">
         <div class="row">
-            <div class="col-md-9">
+            <div class="panel-group col-md-3 myCards" id="cards" role="tablist">
+                <div class="panel panel-default">
+                    <div class="panel-heading text-center">
+                        <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            <h4>Mes cartes</h4>
+                        </a>
+                    </div>
+                    <div class="panel-collapse collapse in" id="collapseOne" role="tabpanel" aria-labelledby="cards">
+                        <div class="panel-body">
+                            <div class="card col-md-5 panel panel-primary">
+                                <div class="panel-heading">
+                                    <h5>Title-card</h5>
+                                </div>
+                                <div class="panel-body">
+                                    <p>Texte center</p>
+                                </div>
+                            </div>
+                            <div class="card col-md-5 col-md-offset-2 panel panel-primary">
+                                <div class="panel-heading">
+                                    <h5>Title-card</h5>
+                                </div>
+                                <div class="panel-body">
+                                    <p>Texte center</p>
+                                </div>
+                            </div>
+                            <div class="card col-md-5 panel panel-primary">
+                                <div class="panel-heading">
+                                    <h5>Title-card</h5>
+                                </div>
+                                <div class="panel-body">
+                                    <p>Texte center</p>
+                                </div>
+                            </div>
+                            <div class="card col-md-5 col-md-offset-2 panel panel-primary">
+                                <div class="panel-heading">
+                                    <h5>Title-card</h5>
+                                </div>
+                                <div class="panel-body">
+                                    <p>Texte center</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 tableGame">
                 <table class="table">
                     <tbody>
                     {% for i in range(0,8) %}
@@ -92,6 +137,7 @@
                 </div>
                 <div class="modal-body">
                     <form class="form-horizontal formPlayer" id="formPlayer">
+                        <h3>Jouer en local</h3>
                         <div class="input-group">
                             <span class="input-group-addon" id="addon1"><i class="glyphicon glyphicon-user"></i></span>
                             <input type="text" required name="player1" class="form-control player1" placeholder="Nom du joueur 1" aria-describedby="addon1">
@@ -102,9 +148,24 @@
                         </div>
                     </form>
                     <hr>
+                    <form id="formOnline">
+                        <h3>Jouer en ligne</h3>
+                        <div class="input-group">
+                            <span class="input-group-addon" id="addon1"><i class="glyphicon glyphicon-user"></i></span>
+                            <input type="text" required name="playerName" class="form-control playerName" placeholder="Votre nom" aria-describedby="addon1">
+                            <span class="input-group-btn submitOnline">
+                                <input type="submit" name="submitOnlinePartie" form="formOnline" class="btn btn-primary" value="Rechercher des joueurs" />
+                            </span>
+                            <span class="input-group-addon hidden waitOnline">
+                                <img src="{{ asset('bundles/app/images/taiji.gif') }}">
+                            </span>
+                        </div>
+                        <div class="alert alert-info hidden alertWaitingOnline">En attente d'un adversaire</div>
+                    </form>
+                    <hr>
                     <form id="formReload">
                         <div class="form-group">
-                            <label for="reloadPartie">Recharger une partie</label>
+                            <h3>Recharger une partie</h3>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="reloadPartie" name="reloadPartie" placeholder="Identifiant de la partie" />
                                 <span class="input-group-btn">
@@ -134,7 +195,7 @@
                         La partie est enregistré à chaque coup.
                     </p>
                     <label for="idPartie">Identifiant : </label>
-                    <input type="text" id="idPartie" name="idPartie" class="idPartie form-control" readonly value="{{ idPartie }}" />
+                    <input type="text" id="idPartie" name="idPartie" class="idPartie form-control" readonly value="" />
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Fermer la modale</button>
@@ -146,6 +207,7 @@
 {% endblock %}
 
 {% block javascripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="{{ asset('bundles/app/js/blockUI.js') }}"></script>
     <script src="{{ asset('bundles/app/js/battle4tetris.js') }}"></script>
 {% endblock %}

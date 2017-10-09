@@ -3,17 +3,34 @@ var player1, player2 = null;
 var poolOfWinElement = [];
 var ruleBounce = null;
 var table = $(".table");
-var idPartie = $(".idPartie").val();
+var idPartieActuel;
 var plateau = [];
 var alert = $(".messageError");
 var compteurBlock = 0;
+var online = false;
+var socket = null;
 var eventClick = function () {
-    checkIfPossibleAction($(this));
+    if(online){
+        socket.emit("ifMyTurn", (boolean) => {
+            if(boolean){
+                checkIfPossibleAction($(this));
+            }else{
+                changeAlert("alert-danger", "Veuillez attendre la fin du tour de votre adversaire!");
+            }
+        });
+    }else{
+        checkIfPossibleAction($(this));
+    }
     // if(valideMove === true){
     //
     // }
 };
 $(document).ready(function(){
+    var card1 = {title : "Destructor" , desc : "Détruit tous les éléments présents sur la ligne selectionnée", effect: "destructor"};
+    var card2 = {title : "Savior" , desc : "Ajoute 3 jetons de ta couleur dans la colonne selectionnée", effect: "savior"};
+    var card3 = {title : "Believer" , desc : "Ajoute 4 éléments bloquants à des positions aléatoires", effect: "believer"};
+    var card4 = {title : "Joker" , desc : "Transforme 2 éléments adverses aléatoires en élement de ta couleur", effect: "joker"};
+    var card5 = {title : "AfterEffect" , desc : "Inflige 10 points de dégats à l'adversaire, mais transforme 2 de tes éléments en élements adverses", effect: "aftereffect"};
     init();
 });
 
@@ -60,15 +77,18 @@ function bounce(element, callback){
     },700);
 }
 
+function launchBackground(){
+    var body = $("body");
+    body.addClass("interstellar", 400,"linear");
+    setTimeout(function(){
+        body.removeClass("interstellar", 500,"linear", function(){
+            body.addClass("constantBackground", 400, "linear");
+            $(".game").toggle("fade");
+        })
+    },5000);
+}
+
 function init(){
-
-    table.find('tbody tr').each(function (i) {
-       plateau[i] = [];
-       $(this).find("td").each(function(e){
-           plateau[i][e] = null;
-       });
-    });
-
     $("#modalJoueur").modal({
         show : true,
         backdrop : "static"
@@ -79,13 +99,16 @@ function init(){
         var player1Name = $(".player1").val();
         var player2Name = $(".player2").val();
         $.ajax({
-            url : Routing.generate("initPlayer", {P1Name : player1Name, P2Name : player2Name, idPartie : idPartie}),
+            url : Routing.generate("initPlayer", {P1Name : player1Name, P2Name : player2Name}),
             dataType : "json",
             method : "POST",
             success : function(data){
-                player1 = data[0];
-                player2 = data[1];
-                actualPlayer = data[2] === 1 ? player1 : player2;
+                launchBackground();
+                initPlateau();
+                setIdPartie(data[0]['id']);
+                player1 = data[1];
+                player2 = data[2];
+                actualPlayer = data[3] === 1 ? player1 : player2;
                 highLightValidePlay();
                 initTable();
                 changeDisplayedPlayer();
@@ -98,12 +121,16 @@ function init(){
 
     $("#formReload").on("submit",function(event){
         event.preventDefault();
+        var compteurNonBloquantElement = 0;
         var idPartie = $("#reloadPartie").val();
         $.ajax({
            url : Routing.generate("reloadPartie", {idPartie : idPartie}),
             dataType : "json",
             method : "POST",
             success : function(data){
+                launchBackground();
+                initPlateau();
+                setIdPartie(idPartie);
                 var delay = 200;
                 $("#modalJoueur").modal("hide");
                 player1 = data["players"][0];
@@ -115,11 +142,15 @@ function init(){
                 }
 
                 for (var i=0; i < data["markedPoints"].length; i++){
+                    if(data["markedPoints"][i]["blocked"] === false){
+                        compteurNonBloquantElement++;
+                    }
                     var element = table.find(".element[data-ligne='"+data["markedPoints"][i]["ligne"]+"'][data-position='"+data["markedPoints"][i]["position"]+"']");
-                    elementSelected(element,data["markedPoints"][i]["player"], delay);
+                    elementSelected(element,data["markedPoints"][i]["player"], delay,data["markedPoints"][i], true);
                     delay = delay + 400;
                 }
 
+                compteurBlock = compteurNonBloquantElement % 3;
                 setTimeout(function(){
                     initPDVAndName();
                     changeDisplayedPlayer();
@@ -134,11 +165,93 @@ function init(){
         });
     });
 
+    $("#formOnline").on("submit",function(e){
+        e.preventDefault();
+        socket = io.connect('http://172.16.6.98:8090',{query: 'namePlayer='+ $(".playerName").val() +''});
+        $(".submitOnline").toggleClass("hidden");
+        $(".waitOnline").toggleClass("hidden");
+        $(".alertWaitingOnline").toggleClass("hidden");
+        socket.on("initGame", (data, players) => {
+            $(".alertWaitingOnline").html("Adversaire trouvé! Début dans <strong class='countDown'>5</strong>");
+            var intervalCounter = setInterval(function(){
+                $(".countDown").text(parseInt($(".countDown").text()) - 1);
+            },1000);
+            setTimeout(function(){
+                launchBackground();
+                clearInterval(intervalCounter);
+                online = true;
+                initPlateau();
+                setIdPartie(data["data"][0]['id']);
+                player1 = data["data"][1];
+                player1["serial"] =  players["players"][0]["idSocket"];
+                player2 = data["data"][2];
+                player2["serial"] = players["players"][1]["idSocket"];
+                actualPlayer = data["data"][3] === 1 ? player1 : player2;
+                highLightValidePlay();
+                initTable();
+                changeDisplayedPlayer();
+                initPDVAndName();
+                changeAlert("alert-info", "La pièce a désignée " + actualPlayer["name"] + " comme premier joueur.");
+                $("#modalJoueur").modal("hide");
+                socket.emit("actualPlayer", actualPlayer["serial"]);
+            },5000);
+        });
+
+        socket.on("responseSuccess", (ligne,position,response) => {
+            var searchedElement = table.find(".element[data-ligne='"+ligne+"'][data-position='"+position+"']");
+            response = JSON.parse(response);
+            removeHighLight();
+            elementSelected(searchedElement,actualPlayer,0, response["markedPoint"], false);
+            alert.addClass("hidden");
+            if(checkIfWin(searchedElement, getPlayerClass(actualPlayer)) === true){
+                removeHighLight();
+                setTimeout(function(){
+                    highLightWinCombo(poolOfWinElement);
+                },1500);
+            }else{
+                setTimeout(function(){
+                    changePlayer();
+                    highLightValidePlay();
+                    table.find("tbody").unblock();
+                },1500);
+            }
+        });
+
+        socket.on("blockElement", (ramdomizedBlocked, markedPoint) => {
+            elementBlockOnline(ramdomizedBlocked["ligne"],ramdomizedBlocked["position"],markedPoint);
+            removeHighLight();
+        });
+    });
+
     function initPDVAndName(){
         $(".player1Label").text(player1["name"]);
         $(".player2Label").text(player2["name"]);
         $(".currentPdvPlayer1").text(player1["life"]);
         $(".currentPdvPlayer2").text(player2["life"]);
+    }
+
+    function setIdPartie($id){
+        idPartieActuel = $id;
+        $("#idPartie").val($id);
+    }
+}
+
+function initPlateau(){
+    var plateauOnline = [];
+    table.find('tbody tr').each(function (i) {
+        plateauOnline[i] = [];
+        plateau[i] = [];
+        $(this).find("td").each(function(e){
+            if(!online){
+                plateau[i][e] = null;
+            }else{
+                plateauOnline[i][e] = {id : null, state : null};
+            }
+        });
+    });
+
+    if(online){
+        socket.emit("initPlateau", JSON.stringify(plateauOnline));
     }
 }
 
@@ -153,32 +266,55 @@ function initTable(){
 function disableTable(){
     table.find('.element').off('click');
     $.ajax({
-        url : Routing.generate("endGame", {idPartie : idPartie}),
+        url : Routing.generate("endGame", {idPartie : idPartieActuel}),
         method : "POST"
     });
 }
 
-function elementSelected(element,player, delay, objectMarkedPoint){
-    setTimeout(function(){
-        compteurBlock++;
-        var currentOffset = element.offset().top;
-        var currentWidth = element.width();
-        var currentHeight = element.height();
-        element.addClass(getPlayerClass(player));
-        element.attr("data-id", objectMarkedPoint["id"]);
-        element.css({position : 'absolute', top : 0, width : currentWidth + "px", height : currentHeight + "px"});
-        /** propriete, durée, easing, complete */
-        element.animate({
-            top : currentOffset
-        }, 250, function(){
-            bounce(element);
+function elementSelected(element,player, delay, objectMarkedPoint, noCompteur){
+    if(objectMarkedPoint["blocked"] === true){
+        setTimeout(function(){
+            plateau[element.data("ligne")][element.data("position")] =  {"id" : objectMarkedPoint["id"], "state" :"blocked" };
+            var currentOffset = element.offset().top;
+            var currentWidth = element.width();
+            var currentHeight = element.height();
+            element.addClass("blocked");
+            element.attr("data-id", objectMarkedPoint["id"]);
+            element.css({position : 'absolute', top : 0, width : currentWidth + "px", height : currentHeight + "px"});
+            /** propriete, durée, easing, complete */
+            element.animate({
+                top : currentOffset
+            }, 250, function(){
+                bounce(element);
+                element.off("click");
+            });
+        },delay);
+    }else{
+        setTimeout(function(){
+            element.addClass(getPlayerClass(player));
             plateau[element.data("ligne")][element.data("position")] = {"id" : objectMarkedPoint["id"], "state" : element.attr("class").match(/is-player[\w-]*\b/)};
-            element.off("click");
-            if(compteurBlock >= 3){
-                elementBlock();
+            if(noCompteur === false){
+                compteurBlock++;
             }
-        });
-    },delay);
+            var currentOffset = element.offset().top;
+            var currentWidth = element.width();
+            var currentHeight = element.height();
+            element.attr("data-id", objectMarkedPoint["id"]);
+            element.css({position : 'absolute', top : 0, width : currentWidth + "px", height : currentHeight + "px"});
+            /** propriete, durée, easing, complete */
+            element.animate({
+                top : currentOffset
+            }, 250, function(){
+                bounce(element);
+                element.off("click");
+                if(compteurBlock >= 3){
+                    if(!online){
+                        elementBlock();
+                    }
+                }
+            });
+        },delay);
+    }
 }
 
 function elementBlock(){
@@ -191,6 +327,7 @@ function elementBlock(){
         }),
         method: "POST",
         dataType: "json",
+        data : {partieID: idPartieActuel},
         async: true,
         success : function(data){
             ramdomizedBlocked.attr("data-id", data["markedPoint"]["id"]);
@@ -205,10 +342,26 @@ function elementBlock(){
                 bounce(ramdomizedBlocked);
             });
             ramdomizedBlocked.off("click");
-            plateau[ramdomizedBlocked.data("ligne")][ramdomizedBlocked.data("position")] = {"id" : data["id"], "state" :"blocked" };
+            plateau[ramdomizedBlocked.data("ligne")][ramdomizedBlocked.data("position")] = {"id" : data["markedPoint"]["id"], "state" :"blocked" };
         }
     });
     compteurBlock = 0;
+}
+
+function elementBlockOnline(ligne,position, markedPoint){
+    var element = table.find(".element[data-ligne='"+ligne+"'][data-position='"+position+"']");
+    var currentRamdomizedOffset = element.offset().top;
+    var currentRamdomizedWidth = element.width();
+    var currentRamdomizedHeight = element.height();
+    element.addClass("blocked");
+    element.css({position : 'absolute', top : 0, width : currentRamdomizedWidth + "px", height : currentRamdomizedHeight + "px"});
+    element.animate({
+        top : currentRamdomizedOffset
+    }, 250, function(){
+        bounce(element);
+    });
+    element.off("click");
+    plateau[ligne][position] = {"id" : markedPoint["id"], "state" :"blocked" };
 }
 
 function changeDisplayedPlayer(){
@@ -223,6 +376,9 @@ function changePlayer(){
     }
     changeEnemy(actualPlayer);
     changeDisplayedPlayer();
+    if(online){
+        socket.emit("actualPlayer", actualPlayer["serial"]);
+    }
 }
 
 function changeEnemy(player){
@@ -250,24 +406,28 @@ function checkIfPossibleAction(element){
         url : Routing.generate("checkIfValideMove", {ligne : element.data("ligne"), position : element.data("position")}),
         method : "POST",
         dataType : "json",
-        data : { plateau : plateau, idPlayer : actualPlayer['id'] },
+        data : { plateau : plateau, idPlayer : actualPlayer['id'], partieID : idPartieActuel },
         async : true,
         success : function(response){
             if(response["success"] === true){
-                removeHighLight();
-                elementSelected(element,actualPlayer,0, response["markedPoint"]);
-                alert.addClass("hidden");
-                if(checkIfWin(element, getPlayerClass(actualPlayer)) === true){
-                    removeHighLight();
-                    setTimeout(function(){
-                        highLightWinCombo(poolOfWinElement);
-                    },1500);
+                if(online){
+                    socket.emit("successPlay",element.data("ligne"),element.data("position"), response);
                 }else{
-                    setTimeout(function(){
-                        changePlayer();
-                        highLightValidePlay();
-                        table.find("tbody").unblock();
-                    },1500);
+                    removeHighLight();
+                    elementSelected(element,actualPlayer,0, response["markedPoint"], false);
+                    alert.addClass("hidden");
+                    if(checkIfWin(element, getPlayerClass(actualPlayer)) === true){
+                        removeHighLight();
+                        setTimeout(function(){
+                            highLightWinCombo(poolOfWinElement);
+                        },1500);
+                    }else{
+                        setTimeout(function(){
+                            changePlayer();
+                            highLightValidePlay();
+                            table.find("tbody").unblock();
+                        },1500);
+                    }
                 }
             }else{
                 console.log("WTF o_O?");
@@ -452,7 +612,6 @@ function searchHighLight(){
             var comparedElement = table.find(".element[data-ligne='"+(ligne + 1)+"'][data-position='"+position+"']");
             if(comparedElement.length === 0 || comparedElement.hasClass("is-player-one") || comparedElement.hasClass("is-player-two") || comparedElement.hasClass("blocked")){
                 tabElementValide.push(element);
-                //element.addClass('highlighted');
             }
         }
     });
@@ -494,33 +653,48 @@ function highLightWinCombo(listOfElements){
         var timer = 250;
         var playerDoingDamage;
         for(var i=0; i < listOfElements.length; i++){
+            playerDoingDamage = getPlayerByClass(getPlayerClassByElement(listOfElements[i]));
             timeOutDissapear(listOfElements[i]);
             timer = timer + 250;
         }
 
-        $.ajax({
-            url : Routing.generate("savePlayer", {idPlayer : actualEnemy["id"], damage : listOfElements.length}),
-            method : "POST",
-            success : function(data){
-                var pdvElement = null;
-                changeEnemy(playerDoingDamage);
-                if(actualEnemy === player1){
-                    pdvElement = $(".currentPdvPlayer1");
-                }else{
-                    pdvElement = $(".currentPdvPlayer2");
+        if(!online){
+            $.ajax({
+                url : Routing.generate("savePlayer", {idPlayer : actualEnemy["id"], damage : listOfElements.length}),
+                method : "POST",
+                success : function(data){
+                    var pdvElement = null;
+                    changeEnemy(playerDoingDamage);
+                    if(actualEnemy === player1){
+                        pdvElement = $(".currentPdvPlayer1");
+                    }else{
+                        pdvElement = $(".currentPdvPlayer2");
+                    }
+                    pdvElement.addClass("losingPDV");
+                    var value = parseInt(pdvElement.text());
+                    pdvElement.text(value - listOfElements.length);
+                    actualEnemy["life"] = actualEnemy["life"] - listOfElements.length;
+                    pdvElement.removeClass("losingPDV", {duration : 350});
                 }
-                pdvElement.addClass("losingPDV");
-                var value = parseInt(pdvElement.text());
-                pdvElement.text(value - listOfElements.length);
-                actualEnemy["life"] = actualEnemy["life"] - listOfElements.length;
-                pdvElement.removeClass("losingPDV", {duration : 350});
+            });
+        }else{
+            var pdvElement = null;
+            changeEnemy(playerDoingDamage);
+            if(actualEnemy === player1){
+                pdvElement = $(".currentPdvPlayer1");
+            }else{
+                pdvElement = $(".currentPdvPlayer2");
             }
-        });
+            pdvElement.addClass("losingPDV");
+            var value = parseInt(pdvElement.text());
+            pdvElement.text(value - listOfElements.length);
+            actualEnemy["life"] = actualEnemy["life"] - listOfElements.length;
+            pdvElement.removeClass("losingPDV", {duration : 350});
+        }
 
         function timeOutDissapear(element){
             setTimeout(function(e){
                 element.removeClass("is-player-one is-player-two",{duration : 350});
-                playerDoingDamage = getPlayerByClass(getPlayerClassByElement(element));
                 // dealDamage(element);
             },timer);
         }
@@ -638,17 +812,25 @@ function refillPlateau(){
         }else if($(this).hasClass("blocked")){
             plateau[$(this).data("ligne")][$(this).data("position")] = {"id" : $(this).data("id"), "state" : "blocked"};
         }else{
-            plateau[$(this).data("ligne")][$(this).data("position")] = null;
+            plateau[$(this).data("ligne")][$(this).data("position")] = {"id" : $(this).data("id"), "state" : null};
         }
     });
 
-    $.ajax({
-        url : Routing.generate("updateMarkedPoints"),
-        method : "POST",
-        data : {idPlayer1 : player1["id"], idPlayer2 : player2["id"], oldPlateau : oldPlateau, plateau : plateau},
-        complete : function(){
-            $("#loading").toggleClass("hidden");
-        }
-    })
+    if(online){
+        socket.emit("initPlateau", JSON.stringify(plateau));
+        $("#loading").toggleClass("hidden");
+    }else{
+        $.ajax({
+            url : Routing.generate("updateMarkedPoints"),
+            method : "POST",
+            data : {idPlayer1 : player1["id"], idPlayer2 : player2["id"], oldPlateau : oldPlateau, plateau : plateau},
+            success : function(data){
+                console.log(data);
+            },
+            complete : function(){
+                $("#loading").toggleClass("hidden");
+            }
+        });
+    }
 }
 

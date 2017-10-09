@@ -17,7 +17,6 @@ canvas { width: 100%; height: 100% }
     border-right: 1px solid black;
     border-left: 1px solid black;
     border-bottom: 1px solid black;
-    margin-top : 20px;
     height: 100%;
     background-color : lightgrey;
 }
@@ -98,4 +97,51 @@ canvas { width: 100%; height: 100% }
     font-weight: bold;
     color : #f70404;
     font-size: 18px;
+}
+
+.waitOnline img{
+    height: 20px;
+}
+
+.alertWaitingOnline{
+    margin-top:5px;
+    padding: 5px 5px 5px 15px !important;
+}
+
+.input-group-btn input{
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    z-index: 2;
+    margin-left: -1px;
+}
+
+.game{
+    display:none;
+}
+
+.interstellar{
+    background: url("../images/Interstellar.gif") center no-repeat;
+    background-size: cover;
+}
+
+.constantBackground{
+    background: url("../images/dust.gif") center no-repeat;
+    background-size: cover;
+}
+
+.myCards,.tableGame{
+    margin-top:20px;
+    padding: 0 10px 0 10px
+}
+
+.card {
+    height: 300px;
+    border-radius: 10px !important;
+    padding : 0 !important;
+    margin-top: 10px; !important;
+}
+
+.card .panel-heading{
+    border-radius: 10px 10px 0 0;
+    text-align: center;
 }

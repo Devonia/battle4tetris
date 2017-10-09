@@ -33,13 +33,9 @@ class DefaultController extends Controller
         $em = $this->getDoctrine()->getManager();
         $repoPartie = $em->getRepository("AppBundle:Partie");
         $lastTenParties = $repoPartie->findBy(array("state" => Partie::TERMINE), array("id" => "DESC"), 10);
-        $partie = new Partie();
-        $partie->setState(Partie::ENCOURS);
-        $em->persist($partie);
-        $em->flush();
 
         return $this->render("@App/default/three.html.twig", array(
-            "idPartie" => $partie->getId(),
+//            "idPartie" => $partie->getId(),
             "lastParties" => $lastTenParties
         ));
     }
@@ -47,18 +43,20 @@ class DefaultController extends Controller
     /**
      * @param Request $request
      *
-     * @Route("/initPlayer/{P1Name}/{P2Name}/{idPartie}", name="initPlayer", options={"expose"=true})
+     * @Route("/initPlayer/{P1Name}/{P2Name}", name="initPlayer", options={"expose"=true})
      */
-    public function initPlayer($P1Name, $P2Name, $idPartie){
+    public function initPlayer($P1Name, $P2Name){
         $em = $this->getDoctrine()->getManager();
-        $partie = $em->getRepository("AppBundle:Partie")->find($idPartie);
+        $partie = new Partie();
+        $partie->setState(Partie::ENCOURS);
+        $em->persist($partie);
         $player1 = new Player($P1Name,$partie, 40);
         $player2 = new Player($P2Name,$partie, 40);
         $em->persist($player1);
         $em->persist($player2);
         $em->flush();
         $coinToss = rand(1,2);
-        echo json_encode(array($player1,$player2, $coinToss));
+        echo json_encode(array($partie,$player1,$player2, $coinToss));
         die();
     }
 
@@ -105,11 +103,12 @@ class DefaultController extends Controller
         $em = $this->getDoctrine()->getManager();
         $plateau = $request->request->get("plateau");
         $player = $em->getRepository("AppBundle:Player")->find($request->request->get("idPlayer"));
+        $partie = $em->getRepository("AppBundle:Partie")->find($request->request->get("partieID"));
         if(isset($plateau[$ligne + 1][$position]))
         {
             $nextElementInColonne = $plateau[$ligne + 1][$position];
             if(!empty($nextElementInColonne)){
-                $markedPoint = new MarkedPoint($ligne,$position,$player);
+                $markedPoint = new MarkedPoint($ligne,$position,$partie,$player);
                 $em->persist($markedPoint);
                 $em->flush();
                 echo json_encode(array("success" => true, "markedPoint" => $markedPoint));
@@ -117,7 +116,7 @@ class DefaultController extends Controller
                 return new Response("Move non valide", 400);
             }
         }else{
-            $markedPoint = new MarkedPoint($ligne,$position,$player);
+            $markedPoint = new MarkedPoint($ligne,$position,$partie,$player);
             $em->persist($markedPoint);
             $em->flush();
             echo json_encode(array("success" => true, "markedPoint" => $markedPoint));
@@ -133,7 +132,9 @@ class DefaultController extends Controller
      */
     public function createBlockElement(Request $request, $ligne,$position){
         $em = $this->getDoctrine()->getManager();
-        $markedPoint = new MarkedPoint($ligne,$position,null, true);
+        /** @var Partie $partie */
+        $partie = $em->getRepository("AppBundle:Partie")->find($request->request->get("partieID"));
+        $markedPoint = new MarkedPoint($ligne,$position,$partie,null, true);
         $em->persist($markedPoint);
         $em->flush();
         echo json_encode(array("success" => true, "markedPoint" => $markedPoint));
@@ -149,7 +150,7 @@ class DefaultController extends Controller
         $partie = $em->getRepository("AppBundle:Partie")->find($idPartie);
         if($partie !== null){
             $players = $em->getRepository("AppBundle:Player")->findBy(array("partie" => $partie));
-            $markedPoint = $em->getRepository("AppBundle:MarkedPoint")->findMarkedFromPlayers($players);
+            $markedPoint = $em->getRepository("AppBundle:MarkedPoint")->findBy(array("partie" => $partie));
             return new Response(json_encode(array(
                 "markedPoints" => $markedPoint,
                 "players" => $players
@@ -176,18 +177,20 @@ class DefaultController extends Controller
         foreach ($currentPlateau as $keyLigne => $ligne){
             foreach ($ligne as $keyElement => $element){
                 if($element !== $oldPlateau[$keyLigne][$keyElement]){
-                    $point = $repoMarkedPoint->find($element["id"]);
-                    if(empty($element)){
-                        $em->remove($point);
-                    }else{
-                        if($element["state"] === "blocked"){
-                            $point->setPlayer(null);
-                            $point->setBlocked(true);
+                    if(isset($element["id"])){
+                        $point = $repoMarkedPoint->find($element["id"]);
+                        if(!isset($element["state"][0])){
+                            $em->remove($point);
                         }else{
-                            $point->setPlayer($element[0] === "is-player-one" ? $player1 : $player2);
-                            $point->setBlocked(false);
-                        }
+                            if($element["state"] === "blocked"){
+                                $point->setPlayer(null);
+                                $point->setBlocked(true);
+                            }else{
+                                $point->setPlayer($element["state"][0] === "is-player-one" ? $player1 : $player2);
+                                $point->setBlocked(false);
+                            }
 
+                        }
                     }
                 }
             }
