@@ -4,6 +4,12 @@
 Bienvenue sur mon jeu Battle4Tetris. Celui-ci mélange les règles du puissance4, 
 du tétris et du duel afin de réaliser un jeu unique et stratégique!
 
+**Pré-requis**
+==========================
+- PHP supportant Symfony3
+- Une base de données
+- Un serveur Node.js(pour le multijoueur)
+
 **Installation**
 ==========================
 Il existe deux branches , master et develop. La première est une version 
@@ -23,3 +29,13 @@ Pour installer Battle4Tetris :
 ============================
 
 En construction et non fonctionnelle.
+
+**Reste à faire**
+=============================
+
+- Finir le multijoueur coté node.js
+- Finir les cartes et leurs effets
+- Finir la reprise d'une partie en cours
+- BugFixes et meilleurs animations
+- Un peu(beaucoup) de design
+- Remettre un code propre
