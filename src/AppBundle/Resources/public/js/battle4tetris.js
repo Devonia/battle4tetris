@@ -5,6 +5,8 @@ var ruleBounce = null;
 var table = $(".table");
 var idPartieActuel;
 var plateau = [];
+var listsOfCards = [];
+var listsOfUltimateCards = [];
 var alert = $(".messageError");
 var compteurBlock = 0;
 var online = false;
@@ -26,13 +28,320 @@ var eventClick = function () {
     // }
 };
 $(document).ready(function(){
-    var card1 = {title : "Destructor" , desc : "Détruit tous les éléments présents sur la ligne selectionnée", effect: "destructor"};
-    var card2 = {title : "Savior" , desc : "Ajoute 3 jetons de ta couleur dans la colonne selectionnée", effect: "savior"};
-    var card3 = {title : "Believer" , desc : "Ajoute 4 éléments bloquants à des positions aléatoires", effect: "believer"};
-    var card4 = {title : "Joker" , desc : "Transforme 2 éléments adverses aléatoires en élement de ta couleur", effect: "joker"};
-    var card5 = {title : "AfterEffect" , desc : "Inflige 10 points de dégats à l'adversaire, mais transforme 2 de tes éléments en élements adverses", effect: "aftereffect"};
     init();
 });
+
+function generateCards(){
+    var timer = 250;
+    var card1 = {title : "Destructor" , desc : "Détruit tous les éléments présents sur la ligne selectionnée", effect: "destructor", class:"destructor"};
+    var card2 = {title : "Savior" , desc : "Ajoute 3 jetons de ta couleur dans la colonne selectionnée", effect: "savior", class:"savior"};
+    var card3 = {title : "Believer" , desc : "Ajoute 4 éléments bloquants à des positions aléatoires", effect: "believer", class:"believer"};
+    var card4 = {title : "Joker" , desc : "Transforme 3 éléments adverses aléatoires en élement de ta couleur", effect: "joker", class:"joker"};
+    var card5 = {title : "AfterEffect" , desc : "Inflige 10 points de dégats à l'adversaire, mais transforme 4 de tes éléments", effect: "aftereffect", class:"aftereffect"};
+    var card6 = {title : "Foresight" , desc : "Inflige 10 points de dégats à l'adversaire, mais dans 3 tours", effect: "foresight", class:"foresight"};
+    var card7 = {title : "Blessing light" , desc : "Restaure 15 points de vie", effect: "bl", class:"bl"};
+    var card8 = {title : "Renovation" , desc : "Restaure 5 points de vie par tour, pendant 3 tours", effect: "renov", class:"renov"};
+    var card9 = {title : "Immolate" , desc : "Inflige 3 points de dégats à l'adversaire, pendant 3 tours", effect: "immolate", class:"immolate"};
+    var card10 = {title : "Explosive touch" , desc : "Inflige 5 points de dégats à l'adversaire et lui détruit un jeton", effect: "et", class:"et"};
+    var cardUltimate1 = {title : "BlackHole" , desc : "Reforme completement le tableau de jeu aléatoirement", effect: "blackhole", class:"blackhole"};
+    var cardUltimate2 = {title : "Unfair advantage" , desc : "Vos 3 prochains coups font apparaitre 3 jetons au lieu d'un", effect: "ua", class:"ua"};
+    var cardUltimate3 = {title : "Holy light" , desc : "Soigne tous vos points de vie ", effect: "holylight", class:"holylight"};
+    listsOfCards[listsOfCards.length] = card1;
+    listsOfCards[listsOfCards.length] = card2;
+    listsOfCards[listsOfCards.length] = card3;
+    listsOfCards[listsOfCards.length] = card4;
+    listsOfCards[listsOfCards.length] = card5;
+    listsOfCards[listsOfCards.length] = card6;
+    listsOfCards[listsOfCards.length] = card7;
+    listsOfCards[listsOfCards.length] = card8;
+    listsOfCards[listsOfCards.length] = card9;
+    listsOfCards[listsOfCards.length] = card10;
+    listsOfUltimateCards.push(cardUltimate1);
+    listsOfUltimateCards.push(cardUltimate2);
+    listsOfUltimateCards.push(cardUltimate3);
+
+    var nbCardSelected = 0;
+    $("#modalCards").modal({
+        show : true,
+        backdrop : "static",
+        keyboard : false
+    });
+
+
+
+    var chooseCards = function(){
+        var copyLists;
+        if (nbCardSelected === 5) {
+            copyLists = [].concat(listsOfUltimateCards);
+        }else{
+            copyLists = [].concat(listsOfCards);
+        }
+        var cardRamdom1 = copyLists.splice(Math.floor(Math.random() * copyLists.length),1)[0];
+        var cardRamdom2 = copyLists.splice(Math.floor(Math.random() * copyLists.length),1)[0];
+        var cardRamdom3 = copyLists.splice(Math.floor(Math.random() * copyLists.length),1)[0];
+
+        var templateCard = $("#templateCard3").clone().html();
+        var template1 = templateCard.replace("__title__",cardRamdom1["title"]).replace("__desc__", cardRamdom1["desc"]).replace("__classCard__", cardRamdom1["class"]);
+        var template2 = templateCard.replace("__title__",cardRamdom2["title"]).replace("__desc__", cardRamdom2["desc"]).replace("__classCard__", cardRamdom2["class"]);
+        var template3 = templateCard.replace("__title__",cardRamdom3["title"]).replace("__desc__", cardRamdom3["desc"]).replace("__classCard__", cardRamdom3["class"]);
+
+        $(".firstCard").empty().append(template1).children(".cardChoose").fadeIn();
+        $(".secondCard").empty().append(template2).children(".cardChoose").fadeIn();
+        $(".thirdCard").empty().append(template3).children(".cardChoose").fadeIn();
+
+        $(".firstCard").off("click").on("click",function(){
+            let template;
+            if (nbCardSelected % 2 === 0) {
+                template = $("#templateCard").clone().html();
+            } else {
+                template = $("#templateCard2").clone().html();
+            }
+            var templateReplaced = template.replace("__title__",cardRamdom1["title"]).replace("__desc__", cardRamdom1["desc"]).replace("__classCard__", cardRamdom1["class"]);
+            $(templateReplaced).appendTo(".cardContainer").data("effect",cardRamdom1["effect"]).toggle("slide",{direction : "up"});
+            nbCardSelected++;
+            if(nbCardSelected < 6){
+                $(".compteurCard").text(nbCardSelected);
+                chooseCards();
+            }else{
+                cardsDone();
+            }
+        });
+
+        $(".secondCard").off("click").on("click",function(){
+            let template;
+            if (nbCardSelected % 2 === 0) {
+                template = $("#templateCard").clone().html();
+            } else {
+                template = $("#templateCard2").clone().html();
+            }
+            var templateReplaced = template.replace("__title__",cardRamdom2["title"]).replace("__desc__", cardRamdom2["desc"]).replace("__classCard__", cardRamdom2["class"]);
+            $(templateReplaced).appendTo(".cardContainer").data("effect",cardRamdom2["effect"]).toggle("slide",{direction : "up"});
+            nbCardSelected++;
+            if(nbCardSelected < 6){
+                $(".compteurCard").text(nbCardSelected);
+                chooseCards();
+            }else{
+                cardsDone();
+            }
+        });
+
+        $(".thirdCard").off("click").on("click",function(){
+            let template;
+            if (nbCardSelected % 2 === 0) {
+                template = $("#templateCard").clone().html();
+            } else {
+                template = $("#templateCard2").clone().html();
+            }
+            var templateReplaced = template.replace("__title__",cardRamdom3["title"]).replace("__desc__", cardRamdom3["desc"]).replace("__classCard__", cardRamdom3["class"]);
+            $(templateReplaced).appendTo(".cardContainer").data("effect",cardRamdom3["effect"]).toggle("slide",{direction : "up"});
+            nbCardSelected++;
+            if(nbCardSelected < 6){
+                $(".compteurCard").text(nbCardSelected);
+                chooseCards();
+            }else{
+                cardsDone();
+            }
+        });
+    };
+
+    $("#modalCards").on("shown.bs.modal",function(e){
+        chooseCards();
+    });
+
+    var cardsDone = function(){
+        $("#modalCards").modal("hide");
+        $(".card").draggable({
+            addClasses : true,
+            zIndex : 1000,
+            stack : "body",
+            drag : function(event,ui){
+                if(!ui.helper.hasClass("highlighted")){
+                    ui.helper.addClass("highlighted");
+                }
+            }
+        });
+
+        $(".wrapper").droppable({
+            accept : ".card",
+            drop: function(event,ui){
+                var cardUsed = ui.draggable;
+                var effect = cardUsed.data("effect");
+                cardUsed.removeClass("highlighted");
+                cardUsed.animate({
+                    boxShadow : "0 -2px 2px 8px rgba(255,255,0,0.5) !important"
+                },1000,function(){
+                    var allNextCards = cardUsed.nextAll();
+                    cardUsed.css("box-shadow", "none !important");
+                    cardUsed.hide("explode",{ pieces: 64},1000,function(){
+                        allNextCards.each(function(i){
+                            $(this).toggleClass("col-md-offset-2");
+                        });
+                        activateEffect(effect);
+                    });
+                });
+            }
+        });
+    };
+
+    function activateEffect(effect){
+        var elementEnemy;
+        var playerClass = getPlayerClass(actualPlayer);
+        var enemyClass = getPlayerClass(actualEnemy);
+        var elementsPlayer = table.find("." + playerClass);
+        var elementsEnemy = table.find("." + enemyClass);
+        switch (effect) {
+            case "destructor":
+                var ligne = table.find('tr');
+                ligne.addClass("highlightLine");
+                ligne.on("click", function (e) {
+                    var elements = $(this).find(".element");
+                    elements.removeClass("is-player-one is-player-two blocked");
+                    ligne.removeClass("highlightLine").off("click");
+                    /** TODO : Faire descendre les éléments puis check if win =) */
+                });
+                break;
+
+            case "savior":
+                table.find("td").on("mouseover", function () {
+                    var element = $(this).find(".element");
+                    table.find(".element[data-position=" + element.data("position") + "]").parent().addClass("highlightColumn");
+                });
+
+                table.find("td").on("mouseout", function () {
+                    var element = $(this).find(".element");
+                    table.find(".element[data-position=" + element.data("position") + "]").parent().removeClass("highlightColumn");
+                });
+
+                table.find("td").on("click", function () {
+                    table.find("td").off("click");
+                    var ligneStart = null;
+                    var element = $(this).find(".element");
+                    var position = element.data("position");
+                    table.find(".element[data-position=" + position + "]").parent().removeClass("highlightColumn").off("mouseout").off("mouseover");
+                    var firstElement = null;
+                    var elementsColonne = table.find(".element[data-position=" + position + "]");
+                    for (var i = 0; i < elementsColonne.length; i++) {
+                        if ($(elementsColonne[i]).hasClass("is-player-one is-player-two blocked")) {
+                            firstElement = $(elementsColonne[i]);
+                            break;
+                        }
+                    }
+
+                    if (firstElement === null) {
+                        ligneStart = 8;
+                    } else {
+                        ligneStart = firstElement.data("ligne") - 1;
+                    }
+
+                    var delay = 0;
+                    for (var y = 0; y < 3; y++) {
+                        var elementConcerned = table.find(".element[data-position=" + position + "][data-ligne=" + ligneStart + "]");
+                        /** TODO : Animer element,check if win etc... **/
+                        ligneStart--;
+                    }
+
+                    refillPlateau();
+                });
+                break;
+
+            case "joker":
+                if (elementsEnemy.length <= 3) {
+                    elementsEnemy.toggleClass(playerClass + " " + enemyClass);
+                } else {
+                    var elementJoker1 = elementsEnemy[Math.floor((Math.random() * elementsEnemy.length))];
+                    $(elementJoker1).toggleClass(playerClass + " " + enemyClass);
+                    elementsEnemy = table.find("." + playerClass);
+                    var elementJoker2 = elementsEnemy[Math.floor((Math.random() * elementsEnemy.length))];
+                    $(elementJoker2).toggleClass(playerClass + " " + enemyClass);
+                    elementsEnemy = table.find("." + playerClass);
+                    var elementJoker3 = elementsEnemy[Math.floor((Math.random() * elementsEnemy.length))];
+                    $(elementJoker3).toggleClass(playerClass + " " + enemyClass);
+                }
+                break;
+
+            case "believer":
+                let compteurElement = 0;
+                let timer = 0;
+                while (compteurElement !== 4) {
+                    elementBlock(timer);
+                    compteurElement++;
+                    timer = timer + 1000;
+                }
+                break;
+
+            case "bl":
+                if(actualPlayer["life"] + 15 >= 40){
+                    actualPlayer["life"] = 40;
+                }else{
+                    actualPlayer["life"] = actualPlayer["life"] + 15
+                }
+                elementsPlayer = getElementPdvPlayer();
+                elementsPlayer.addClass("healingPDV");
+                elementsPlayer.text(actualPlayer["life"]);
+                elementsPlayer.removeClass("healingPDV", {duration : 350});
+                break;
+
+            case "ua":
+                break;
+
+            case "holylight":
+                actualPlayer["life"] = 40;
+                elementsPlayer = getElementPdvPlayer();
+                elementsPlayer.addClass("healingPDV");
+                elementsPlayer.text(actualPlayer["life"]);
+                elementsPlayer.removeClass("healingPDV", {duration : 350});
+                break;
+
+            case "immolate":
+                break;
+
+            case "renov":
+                break;
+
+            case "et":
+                actualEnemy["life"] = actualEnemy["life"] - 5;
+                elementEnemy = getElementPdvEnemy();
+                elementEnemy.addClass("losingPDV");
+                elementEnemy.text(actualEnemy["life"]);
+                elementEnemy.removeClass("losingPDV", {duration : 350});
+                let selectedElement = elementsEnemy[Math.floor((Math.random() * elementsEnemy.length))];
+                $(selectedElement).removeClass(enemyClass);
+                break;
+
+            case "aftereffect":
+                actualEnemy["life"] = actualEnemy["life"] - 10;
+                elementEnemy = getElementPdvEnemy();
+                elementEnemy.addClass("losingPDV");
+                elementEnemy.text(actualEnemy["life"]);
+                elementEnemy.removeClass("losingPDV", {duration : 350});
+                if(elementsPlayer.length <= 4){
+                    elementsPlayer.toggleClass(playerClass + " " + enemyClass);
+                }else{
+                    var element1 = elementsPlayer[Math.floor((Math.random() * elementsPlayer.length))];
+                    $(element1).toggleClass(playerClass + " " + enemyClass);
+                    elementsPlayer = table.find("." + playerClass);
+                    var element2 = elementsPlayer[Math.floor((Math.random() * elementsPlayer.length))];
+                    $(element2).toggleClass(playerClass + " " + enemyClass);
+                    elementsPlayer = table.find("." + playerClass);
+                    var element3 = elementsPlayer[Math.floor((Math.random() * elementsPlayer.length))];
+                    $(element3).toggleClass(playerClass + " " + enemyClass);
+                    elementsPlayer = table.find("." + playerClass);
+                    var element4 = elementsPlayer[Math.floor((Math.random() * elementsPlayer.length))];
+                    $(element4).toggleClass(playerClass + " " + enemyClass);
+                }
+
+                break;
+
+            case "blackhole":
+                console.log(effect);
+                break;
+
+            case "foresight":
+                console.log(effect);
+                break;
+        }
+    }
+}
 
 function bounce(element, callback){
     var ss = document.styleSheets;
@@ -84,7 +393,8 @@ function launchBackground(){
         body.removeClass("interstellar", 500,"linear", function(){
             body.addClass("constantBackground", 400, "linear");
             $(".game").toggle("fade");
-        })
+            generateCards();
+        });
     },5000);
 }
 
@@ -109,6 +419,7 @@ function init(){
                 player1 = data[1];
                 player2 = data[2];
                 actualPlayer = data[3] === 1 ? player1 : player2;
+                changeEnemy(actualPlayer);
                 highLightValidePlay();
                 initTable();
                 changeDisplayedPlayer();
@@ -309,7 +620,7 @@ function elementSelected(element,player, delay, objectMarkedPoint, noCompteur){
                 element.off("click");
                 if(compteurBlock >= 3){
                     if(!online){
-                        elementBlock();
+                        elementBlock(0);
                     }
                 }
             });
@@ -317,35 +628,38 @@ function elementSelected(element,player, delay, objectMarkedPoint, noCompteur){
     }
 }
 
-function elementBlock(){
-    var listOfPotentielElement = searchHighLight();
-    var ramdomizedBlocked = listOfPotentielElement[Math.floor((Math.random() * listOfPotentielElement.length))];
-    $.ajax({
-        url: Routing.generate("createBlockElement", {
-            ligne: ramdomizedBlocked.data("ligne"),
-            position: ramdomizedBlocked.data("position")
-        }),
-        method: "POST",
-        dataType: "json",
-        data : {partieID: idPartieActuel},
-        async: true,
-        success : function(data){
-            ramdomizedBlocked.attr("data-id", data["markedPoint"]["id"]);
-            var currentRamdomizedOffset = ramdomizedBlocked.offset().top;
-            var currentRamdomizedWidth = ramdomizedBlocked.width();
-            var currentRamdomizedHeight = ramdomizedBlocked.height();
-            ramdomizedBlocked.addClass("blocked");
-            ramdomizedBlocked.css({position : 'absolute', top : 0, width : currentRamdomizedWidth + "px", height : currentRamdomizedHeight + "px"});
-            ramdomizedBlocked.animate({
-                top : currentRamdomizedOffset
-            }, 250, function(){
-                bounce(ramdomizedBlocked);
-            });
-            ramdomizedBlocked.off("click");
-            plateau[ramdomizedBlocked.data("ligne")][ramdomizedBlocked.data("position")] = {"id" : data["markedPoint"]["id"], "state" :"blocked" };
-        }
-    });
-    compteurBlock = 0;
+function elementBlock(timer){
+    setTimeout(function(){
+        var listOfPotentielElement = searchHighLight();
+        var ramdomizedBlocked = listOfPotentielElement[Math.floor((Math.random() * listOfPotentielElement.length))];
+        $.ajax({
+            url: Routing.generate("createBlockElement", {
+                ligne: ramdomizedBlocked.data("ligne"),
+                position: ramdomizedBlocked.data("position")
+            }),
+            method: "POST",
+            dataType: "json",
+            data : {partieID: idPartieActuel},
+            async: true,
+            success : function(data){
+                ramdomizedBlocked.attr("data-id", data["markedPoint"]["id"]);
+                var currentRamdomizedOffset = ramdomizedBlocked.offset().top;
+                var currentRamdomizedWidth = ramdomizedBlocked.width();
+                var currentRamdomizedHeight = ramdomizedBlocked.height();
+                ramdomizedBlocked.addClass("blocked");
+                ramdomizedBlocked.css({position : 'absolute', top : 0, width : currentRamdomizedWidth + "px", height : currentRamdomizedHeight + "px"});
+                ramdomizedBlocked.animate({
+                    top : currentRamdomizedOffset
+                }, 250, function(){
+                    bounce(ramdomizedBlocked);
+                });
+                plateau[ramdomizedBlocked.data("ligne")][ramdomizedBlocked.data("position")] = {"id" : data["markedPoint"]["id"], "state" :"blocked" };
+                ramdomizedBlocked.off("click");
+            }
+        });
+
+        compteurBlock = 0;
+    },timer);
 }
 
 function elementBlockOnline(ligne,position, markedPoint){
@@ -626,6 +940,23 @@ function emptyPool(){
     poolOfWinElement = [];
 }
 
+function getElementPdvPlayer(){
+    if(actualPlayer === player1){
+        return $(".currentPdvPlayer1");
+    }else{
+        return $(".currentPdvPlayer2");
+    }
+}
+
+
+function getElementPdvEnemy(){
+    if(actualEnemy === player1){
+        return $(".currentPdvPlayer1");
+    }else{
+        return $(".currentPdvPlayer2");
+    }
+}
+
 function highLightWinCombo(listOfElements){
     table.find(".element").each(function(e) {
         if(!inArray($(this)[0], listOfElements)){
@@ -663,13 +994,8 @@ function highLightWinCombo(listOfElements){
                 url : Routing.generate("savePlayer", {idPlayer : actualEnemy["id"], damage : listOfElements.length}),
                 method : "POST",
                 success : function(data){
-                    var pdvElement = null;
                     changeEnemy(playerDoingDamage);
-                    if(actualEnemy === player1){
-                        pdvElement = $(".currentPdvPlayer1");
-                    }else{
-                        pdvElement = $(".currentPdvPlayer2");
-                    }
+                    var pdvElement = getElementPdvEnemy();
                     pdvElement.addClass("losingPDV");
                     var value = parseInt(pdvElement.text());
                     pdvElement.text(value - listOfElements.length);
@@ -678,13 +1004,8 @@ function highLightWinCombo(listOfElements){
                 }
             });
         }else{
-            var pdvElement = null;
             changeEnemy(playerDoingDamage);
-            if(actualEnemy === player1){
-                pdvElement = $(".currentPdvPlayer1");
-            }else{
-                pdvElement = $(".currentPdvPlayer2");
-            }
+            var pdvElement = getElementPdvEnemy();
             pdvElement.addClass("losingPDV");
             var value = parseInt(pdvElement.text());
             pdvElement.text(value - listOfElements.length);

@@ -13,6 +13,12 @@ canvas { width: 100%; height: 100% }
     100% { border-color: orange;box-shadow: 0 0 3px 2px orange; }
 }
 
+@-webkit-keyframes HIGHLIGHT-LINE {
+    0% { background-color: rgba(255, 255, 0, 0.75); }
+    50% { background-color: lightgray; }
+    100% { background-color: rgba(255, 255, 0, 0.75); }
+}
+
 .table{
     border-right: 1px solid black;
     border-left: 1px solid black;
@@ -99,6 +105,12 @@ canvas { width: 100%; height: 100% }
     font-size: 18px;
 }
 
+.healingPDV{
+    font-weight: bold;
+    color : #089c08;
+    font-size: 18px;
+}
+
 .waitOnline img{
     height: 20px;
 }
@@ -135,13 +147,64 @@ canvas { width: 100%; height: 100% }
 }
 
 .card {
-    height: 300px;
+    height: 250px;
     border-radius: 10px !important;
     padding : 0 !important;
-    margin-top: 10px; !important;
+    margin-top: 10px !important;
 }
 
 .card .panel-heading{
     border-radius: 10px 10px 0 0;
     text-align: center;
 }
+
+.card .panel-body p {
+    color: white;
+    font-size: large;
+    font-weight: bold;
+    text-shadow: 1px 0 1px black;
+}
+
+.highlightLine:hover{
+    -webkit-transition: all 1s;
+    -webkit-animation: HIGHLIGHT-LINE 2s infinite;
+    cursor: pointer;
+}
+
+.highlightColumn{
+    -webkit-transition: all 1s;
+    -webkit-animation: HIGHLIGHT-LINE 2s infinite;
+    cursor: pointer;
+}
+
+.activateCard{
+    box-shadow: 0 -2px 2px 8px rgba(255,255,0,0.5) !important;
+}
+
+#modalCards .row{
+    margin : 0 !important;
+}
+
+.cardChoose{
+    transition: box-shadow 0.5s,transform 0.5s;
+    height: 200px;
+    cursor : pointer;
+}
+
+.cardChoose:hover{
+    box-shadow: 0 0 10px 3px #7bcfe2;
+    transform: scale(1.1);
+
+}
+
+/*.foresight{*/
+    /*background: url("../images/cards/testForesight.png") center no-repeat;*/
+    /*background-size: cover;*/
+    /*opacity: 1;*/
+/*}*/
+
+/*.savior{*/
+    /*background: url("../images/cards/testSavior.png") center no-repeat;*/
+    /*background-size: cover;*/
+    /*opacity: 1;*/
+/*}*/

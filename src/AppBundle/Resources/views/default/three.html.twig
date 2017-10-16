@@ -15,114 +15,116 @@
                         </a>
                     </div>
                     <div class="panel-collapse collapse in" id="collapseOne" role="tabpanel" aria-labelledby="cards">
+                        <div class="panel-body cardContainer">
+                            {#<div class="card col-md-5 panel panel-primary">#}
+                                {#<div class="panel-heading">#}
+                                    {#<h5>Title-card</h5>#}
+                                {#</div>#}
+                                {#<div class="panel-body">#}
+                                    {#<p>Texte center</p>#}
+                                {#</div>#}
+                            {#</div>#}
+                            {#<div class="card col-md-5 col-md-offset-2 panel panel-primary">#}
+                                {#<div class="panel-heading">#}
+                                    {#<h5>Title-card</h5>#}
+                                {#</div>#}
+                                {#<div class="panel-body">#}
+                                    {#<p>Texte center</p>#}
+                                {#</div>#}
+                            {#</div>#}
+                            {#<div class="card col-md-5 panel panel-primary">#}
+                                {#<div class="panel-heading">#}
+                                    {#<h5>Title-card</h5>#}
+                                {#</div>#}
+                                {#<div class="panel-body">#}
+                                    {#<p>Texte center</p>#}
+                                {#</div>#}
+                            {#</div>#}
+                            {#<div class="card col-md-5 col-md-offset-2 panel panel-primary">#}
+                                {#<div class="panel-heading">#}
+                                    {#<h5>Title-card</h5>#}
+                                {#</div>#}
+                                {#<div class="panel-body">#}
+                                    {#<p>Texte center</p>#}
+                                {#</div>#}
+                            {#</div>#}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="wrapper col-md-9">
+                <div class="col-md-9 tableGame">
+                    <table class="table">
+                        <tbody>
+                        {% for i in range(0,8) %}
+                            <tr>
+                                {% for y in range(0,8) %}
+                                    <td><div class="element" data-ligne="{{ i }}" data-position="{{ y }}">&nbsp;</div></td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="col-md-12">
+                        <div class="hidden messageError"></div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h4 style="display : inline-block;">Informations</h4>
+                            <span class="hidden" id="loading"><img src="{{ asset('bundles/app/images/taiji.gif') }}" /></span>
+                        </div>
                         <div class="panel-body">
-                            <div class="card col-md-5 panel panel-primary">
-                                <div class="panel-heading">
-                                    <h5>Title-card</h5>
-                                </div>
-                                <div class="panel-body">
-                                    <p>Texte center</p>
-                                </div>
-                            </div>
-                            <div class="card col-md-5 col-md-offset-2 panel panel-primary">
-                                <div class="panel-heading">
-                                    <h5>Title-card</h5>
-                                </div>
-                                <div class="panel-body">
-                                    <p>Texte center</p>
+                            <div class="col-md-12">
+                                <label>Joueur actuel : <strong class="actualPlayer"></strong></label>
+                                <div class="panel panel-primary text-center">
+                                    <div class="panel-heading">
+                                        <p><strong class="player1Label"></strong></p>
+                                    </div>
+                                    <div class="panel-body">
+                                        <p>Point de vie : <i class="currentPdvPlayer1"></i><i>/40</i></p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="card col-md-5 panel panel-primary">
-                                <div class="panel-heading">
-                                    <h5>Title-card</h5>
-                                </div>
-                                <div class="panel-body">
-                                    <p>Texte center</p>
+                            <div class="col-md-12">
+                                <div class="panel panel-primary text-center">
+                                    <div class="panel-heading">
+                                        <p><strong class="player2Label"></strong></p>
+                                    </div>
+                                    <div class="panel-body">
+                                        <p>Point de vie : <i class="currentPdvPlayer2"></i><i>/40</i></p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="card col-md-5 col-md-offset-2 panel panel-primary">
-                                <div class="panel-heading">
-                                    <h5>Title-card</h5>
-                                </div>
-                                <div class="panel-body">
-                                    <p>Texte center</p>
-                                </div>
+                        </div>
+                        <div class="panel-footer row">
+                            <div class="col-md-12 text-center">
+                                <a class="btn btn-primary" href="{{ path('three') }}">Redémarrer une partie</a>
+                            </div>
+                            <div class="col-md-12 text-center">
+                                <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modalIdPartie">
+                                    Sauvegarder la partie
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-6 tableGame">
-                <table class="table">
-                    <tbody>
-                    {% for i in range(0,8) %}
-                        <tr>
-                            {% for y in range(0,8) %}
-                                <td><div class="element" data-ligne="{{ i }}" data-position="{{ y }}">&nbsp;</div></td>
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-                <div class="col-md-12">
-                    <div class="hidden messageError"></div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="panel panel-primary">
-                    <div class="panel-heading">
-                        <h4 style="display : inline-block;">Informations</h4>
-                        <span class="hidden" id="loading"><img src="{{ asset('bundles/app/images/taiji.gif') }}" /></span>
-                    </div>
-                    <div class="panel-body">
-                        <div class="col-md-12">
-                            <label>Joueur actuel : <strong class="actualPlayer"></strong></label>
-                            <div class="panel panel-primary text-center">
-                                <div class="panel-heading">
-                                    <p><strong class="player1Label"></strong></p>
-                                </div>
-                                <div class="panel-body">
-                                    <p>Point de vie : <i class="currentPdvPlayer1"></i><i>/40</i></p>
-                                </div>
-                            </div>
+                <div class="col-md-3">
+                    <div class="panel panel-info panelReplay">
+                        <div class="panel-heading">
+                            <h4>Liste des dernieres parties disponibles en replay</h4>
                         </div>
-                        <div class="col-md-12">
-                            <div class="panel panel-primary text-center">
-                                <div class="panel-heading">
-                                    <p><strong class="player2Label"></strong></p>
-                                </div>
-                                <div class="panel-body">
-                                    <p>Point de vie : <i class="currentPdvPlayer2"></i><i>/40</i></p>
-                                </div>
-                            </div>
+                        <div class="panel-body">
+                            <ol>
+                                {% for partie in lastParties %}
+                                    <li>
+                                        <input type="radio" name="selectedReplay" value="{{ partie.id }}" id="{{ partie.id }}">
+                                        <label for="{{ partie.id }}">{{ partie.id }}</label>
+                                    </li>
+                                {% endfor %}
+                            </ol>
                         </div>
-                    </div>
-                    <div class="panel-footer row">
-                        <div class="col-md-12 text-center">
-                            <a class="btn btn-primary" href="{{ path('three') }}">Redémarrer une partie</a>
-                        </div>
-                        <div class="col-md-12 text-center">
-                            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modalIdPartie">
-                                Sauvegarder la partie
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="panel panel-info panelReplay">
-                    <div class="panel-heading">
-                        <h4>Liste des dernieres parties disponibles en replay</h4>
-                    </div>
-                    <div class="panel-body">
-                        <ol>
-                            {% for partie in lastParties %}
-                                <li>
-                                    <input type="radio" name="selectedReplay" value="{{ partie.id }}" id="{{ partie.id }}">
-                                    <label for="{{ partie.id }}">{{ partie.id }}</label>
-                                </li>
-                            {% endfor %}
-                        </ol>
                     </div>
                 </div>
             </div>
@@ -204,10 +206,59 @@
         </div>
     </div>
 
+    <div class="modal fade" tabindex="-1" role="dialog" id="modalCards">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <p class="pull-right"><strong><i class="compteurCard">0</i>/6</strong></p>
+                    <h4 class="modal-title">Choisissez une carte</h4>
+                </div>
+                <div class="modal-body row">
+                    <div class="col-md-4 firstCard"></div>
+                    <div class="col-md-4 secondCard"></div>
+                    <div class="col-md-4 thirdCard"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block javascripts %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="{{ asset('bundles/app/js/blockUI.js') }}"></script>
     <script src="{{ asset('bundles/app/js/battle4tetris.js') }}"></script>
+
+    <script type="text/plain" id="templateCard">
+        <div class="card col-md-5 panel __classCard__ panel-primary" style="display:none;">
+            <div class="panel-heading">
+                <h5>__title__</h5>
+            </div>
+            <div class="panel-body">
+                <p>__desc__</p>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/plain" id="templateCard2">
+        <div class="card col-md-5 col-md-offset-2 __classCard__ panel panel-primary" style="display:none;">
+            <div class="panel-heading">
+                <h5>__title__</h5>
+            </div>
+            <div class="panel-body">
+                <p>__desc__</p>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/plain" id="templateCard3">
+        <div class="cardChoose panel panel-primary" style="display:none;">
+            <div class="panel-heading">
+                <h5>__title__</h5>
+            </div>
+            <div class="panel-body">
+                <p>__desc__</p>
+            </div>
+        </div>
+    </script>
 {% endblock %}
