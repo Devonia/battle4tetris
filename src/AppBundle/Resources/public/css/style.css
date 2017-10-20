@@ -1,4 +1,9 @@
-body,html,.container-fluid,.row,.col-md-6 { margin: 0; height:95%;width: 100% }
+body,html,.game,.row,.wrapper{
+    height: 100%;
+    width: 100%
+}
+
+.row,.col-md-6{ margin: 0; }
 canvas { width: 100%; height: 100% }
 
 @-webkit-keyframes BOUNCE {
@@ -17,6 +22,34 @@ canvas { width: 100%; height: 100% }
     0% { background-color: rgba(255, 255, 0, 0.75); }
     50% { background-color: lightgray; }
     100% { background-color: rgba(255, 255, 0, 0.75); }
+}
+
+@-webkit-keyframes ARRIVAL-CARD {
+    0% { box-shadow: 0 0 10px 3px white; }
+    20% { box-shadow: 0 0 10px 5px #b7dbe2; }
+    40% { box-shadow: 0 0 10px 8px #4ad0e2; }
+    50% { box-shadow: 0 0 10px 10px #0bd7db; }
+    60% { box-shadow: 0 0 10px 8px #4ad0e2; }
+    80% { box-shadow: 0 0 10px 5px #b7dbe2; }
+    100% { box-shadow: 0 0 10px 3px white; }
+}
+
+@-webkit-keyframes ARRIVAL-CARD-ULTIMATE {
+    0% { box-shadow: 0 0 10px 3px white; }
+    20% { box-shadow: 0 0 10px 5px #ffda5d; }
+    40% { box-shadow: 0 0 10px 8px #ffd627; }
+    50% { box-shadow: 0 0 10px 10px #ffd100; }
+    60% { box-shadow: 0 0 10px 8px #ffd627; }
+    80% { box-shadow: 0 0 10px 5px #ffda5d; }
+    100% { box-shadow: 0 0 10px 3px white; }
+}
+
+
+.version{
+    top: 0;
+    left: 0;
+    padding: 0 0 0 0 !important;
+    margin: 1% 0;
 }
 
 .table{
@@ -141,6 +174,10 @@ canvas { width: 100%; height: 100% }
     background-size: cover;
 }
 
+.tableGame{
+    height: 90%;
+}
+
 .myCards,.tableGame{
     margin-top:20px;
     padding: 0 10px 0 10px
@@ -151,7 +188,14 @@ canvas { width: 100%; height: 100% }
     border-radius: 10px !important;
     padding : 0 !important;
     margin-top: 10px !important;
+    transition : transform 0.2s;
 }
+
+.card:hover{
+    transform: scale(1.050);
+    cursor : pointer;
+}
+
 
 .card .panel-heading{
     border-radius: 10px 10px 0 0;
@@ -159,10 +203,10 @@ canvas { width: 100%; height: 100% }
 }
 
 .card .panel-body p {
-    color: white;
+    color: black;
     font-size: large;
     font-weight: bold;
-    text-shadow: 1px 0 1px black;
+    /*text-shadow: 1px 0 1px black;*/
 }
 
 .highlightLine:hover{
@@ -185,16 +229,76 @@ canvas { width: 100%; height: 100% }
     margin : 0 !important;
 }
 
+#modalJoueur .modal-title{
+    display:inline-block;
+}
+
+/** Choix des cartes */
 .cardChoose{
-    transition: box-shadow 0.5s,transform 0.5s;
+    transition: box-shadow 0.2s,transform 0.2s;
     height: 200px;
     cursor : pointer;
+    animation-name: ARRIVAL-CARD;
+    animation-duration : 0.75s;
+    animation-iteration-count: 1;
+}
+
+.cardChoose.ultimate{
+    transition: box-shadow 0.2s,transform 0.2s;
+    animation-name: ARRIVAL-CARD-ULTIMATE;
+    animation-duration : 0.75s;
+    animation-iteration-count: 1;
 }
 
 .cardChoose:hover{
     box-shadow: 0 0 10px 3px #7bcfe2;
     transform: scale(1.1);
+}
 
+.cardChoose.ultimate:hover{
+    box-shadow: 0 0 10px 3px #ffd100 !important;
+    transform: scale(1.1);
+}
+
+/** Popover **/
+.popover{
+    top: 0 !important;
+    left: 591.5px !important;
+    display: block;
+    width: 500px !important;
+    max-width: 1200px !important;
+}
+
+.popover > .popover-title{
+    font-weight: bold;
+    font-size: 30px;
+}
+
+.popover p{
+    font-style: normal;
+    font-weight: bold;
+    font-family: sans-serif;
+}
+
+.popover-content-reform{
+    padding: 9px 14px;
+}
+
+.firstBlockPopover .col-md-2{
+    height: 150px;
+}
+
+.firstBlockPopover .col-md-2 > table{
+    height: 50%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    margin: 50% 0;
+    position: absolute;
+}
+
+.secondBlockPopover .card{
+    margin : 0 !important;
 }
 
 /*.foresight{*/

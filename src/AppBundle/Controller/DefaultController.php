@@ -33,10 +33,11 @@ class DefaultController extends Controller
         $em = $this->getDoctrine()->getManager();
         $repoPartie = $em->getRepository("AppBundle:Partie");
         $lastTenParties = $repoPartie->findBy(array("state" => Partie::TERMINE), array("id" => "DESC"), 10);
-
+        $popover = $this->renderView("@App/default/popover-help.html.twig");
         return $this->render("@App/default/three.html.twig", array(
 //            "idPartie" => $partie->getId(),
-            "lastParties" => $lastTenParties
+            "lastParties" => $lastTenParties,
+            "popover" => $popover
         ));
     }
 

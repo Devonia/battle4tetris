@@ -16,38 +16,7 @@
                     </div>
                     <div class="panel-collapse collapse in" id="collapseOne" role="tabpanel" aria-labelledby="cards">
                         <div class="panel-body cardContainer">
-                            {#<div class="card col-md-5 panel panel-primary">#}
-                                {#<div class="panel-heading">#}
-                                    {#<h5>Title-card</h5>#}
-                                {#</div>#}
-                                {#<div class="panel-body">#}
-                                    {#<p>Texte center</p>#}
-                                {#</div>#}
-                            {#</div>#}
-                            {#<div class="card col-md-5 col-md-offset-2 panel panel-primary">#}
-                                {#<div class="panel-heading">#}
-                                    {#<h5>Title-card</h5>#}
-                                {#</div>#}
-                                {#<div class="panel-body">#}
-                                    {#<p>Texte center</p>#}
-                                {#</div>#}
-                            {#</div>#}
-                            {#<div class="card col-md-5 panel panel-primary">#}
-                                {#<div class="panel-heading">#}
-                                    {#<h5>Title-card</h5>#}
-                                {#</div>#}
-                                {#<div class="panel-body">#}
-                                    {#<p>Texte center</p>#}
-                                {#</div>#}
-                            {#</div>#}
-                            {#<div class="card col-md-5 col-md-offset-2 panel panel-primary">#}
-                                {#<div class="panel-heading">#}
-                                    {#<h5>Title-card</h5>#}
-                                {#</div>#}
-                                {#<div class="panel-body">#}
-                                    {#<p>Texte center</p>#}
-                                {#</div>#}
-                            {#</div>#}
+                            <!-- JS -->
                         </div>
                     </div>
                 </div>
@@ -136,8 +105,10 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Inscription des joueurs</h4>
+                    <span class="pull-right"><i data-toggle="popover" data-template="{{ popover }}" data-title="Aide de jeux" data-content="" class="glyphicon glyphicon-info-sign infoGame"></i></span>
                 </div>
                 <div class="modal-body">
+                    <p class="text-center"><strong style="color:red;">Version alpha</strong></p>
                     <form class="form-horizontal formPlayer" id="formPlayer">
                         <h3>Jouer en local</h3>
                         <div class="input-group">
@@ -178,7 +149,8 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <input type="submit" name="submitButton" form="formPlayer" class="btn btn-primary" value="Lancer la partie">
+                    <div class="col-md-8 text-left version"><strong>Battle4Tetris v{{ version }}</strong></div>
+                    <input type="submit" name="submitButton" form="formPlayer" class="btn btn-primary col-md-4" value="Lancer la partie">
                 </div>
             </div>
         </div>
@@ -252,7 +224,7 @@
     </script>
 
     <script type="text/plain" id="templateCard3">
-        <div class="cardChoose panel panel-primary" style="display:none;">
+        <div class="cardChoose __classCard__ panel panel-primary" style="display:none;">
             <div class="panel-heading">
                 <h5>__title__</h5>
             </div>

@@ -11,6 +11,8 @@ var alert = $(".messageError");
 var compteurBlock = 0;
 var online = false;
 var socket = null;
+var tour = 1;
+var dotHot = [];
 var eventClick = function () {
     if(online){
         socket.emit("ifMyTurn", (boolean) => {
@@ -23,29 +25,29 @@ var eventClick = function () {
     }else{
         checkIfPossibleAction($(this));
     }
-    // if(valideMove === true){
-    //
-    // }
 };
 $(document).ready(function(){
+    $(".infoGame").popover({
+        trigger : "hover focus"
+    });
     init();
 });
 
 function generateCards(){
     var timer = 250;
-    var card1 = {title : "Destructor" , desc : "Détruit tous les éléments présents sur la ligne selectionnée", effect: "destructor", class:"destructor"};
+    var card1 = {title : "Destructor" , desc : "Détruit tous les jetons présents sur la ligne selectionnée", effect: "destructor", class:"destructor"};
     var card2 = {title : "Savior" , desc : "Ajoute 3 jetons de ta couleur dans la colonne selectionnée", effect: "savior", class:"savior"};
-    var card3 = {title : "Believer" , desc : "Ajoute 4 éléments bloquants à des positions aléatoires", effect: "believer", class:"believer"};
-    var card4 = {title : "Joker" , desc : "Transforme 3 éléments adverses aléatoires en élement de ta couleur", effect: "joker", class:"joker"};
-    var card5 = {title : "AfterEffect" , desc : "Inflige 10 points de dégats à l'adversaire, mais transforme 4 de tes éléments", effect: "aftereffect", class:"aftereffect"};
-    var card6 = {title : "Foresight" , desc : "Inflige 10 points de dégats à l'adversaire, mais dans 3 tours", effect: "foresight", class:"foresight"};
-    var card7 = {title : "Blessing light" , desc : "Restaure 15 points de vie", effect: "bl", class:"bl"};
+    var card3 = {title : "Believer" , desc : "Ajoute 4 jetons bloquants à des positions aléatoires", effect: "believer", class:"believer"};
+    var card4 = {title : "Joker" , desc : "Transforme 3 jetons adverses aléatoires en jetons de ta couleur", effect: "joker", class:"joker"};
+    var card5 = {title : "AfterEffect" , desc : "Inflige 5 points de dégats à l'adversaire, mais transforme 2 de tes jetons", effect: "aftereffect", class:"aftereffect"};
+    var card6 = {title : "Foresight" , desc : "Inflige 5 points de dégats à l'adversaire, mais dans 3 tours", effect: "foresight", class:"foresight"};
+    var card7 = {title : "Blessing light" , desc : "Restaure 10 points de vie", effect: "bl", class:"bl"};
     var card8 = {title : "Renovation" , desc : "Restaure 5 points de vie par tour, pendant 3 tours", effect: "renov", class:"renov"};
-    var card9 = {title : "Immolate" , desc : "Inflige 3 points de dégats à l'adversaire, pendant 3 tours", effect: "immolate", class:"immolate"};
+    var card9 = {title : "Immolate" , desc : "Inflige 5 points de dégats à l'adversaire, pendant 3 tours", effect: "immolate", class:"immolate"};
     var card10 = {title : "Explosive touch" , desc : "Inflige 5 points de dégats à l'adversaire et lui détruit un jeton", effect: "et", class:"et"};
-    var cardUltimate1 = {title : "BlackHole" , desc : "Reforme completement le tableau de jeu aléatoirement", effect: "blackhole", class:"blackhole"};
-    var cardUltimate2 = {title : "Unfair advantage" , desc : "Vos 3 prochains coups font apparaitre 3 jetons au lieu d'un", effect: "ua", class:"ua"};
-    var cardUltimate3 = {title : "Holy light" , desc : "Soigne tous vos points de vie ", effect: "holylight", class:"holylight"};
+    var cardUltimate1 = {title : "BlackHole" , desc : "Reforme completement le tableau de jeu aléatoirement", effect: "blackhole", class:"ultimate"};
+    var cardUltimate2 = {title : "Atomic explosion" , desc : "Inflige 5 points de dégats à l'adversaire,le brule pendant 3 tours et détruit 2 de ses jetons", effect: "ae", class:"ultimate"};
+    var cardUltimate3 = {title : "Holy light" , desc : "Soigne tous vos points de vie ", effect: "holylight", class:"ultimate"};
     listsOfCards[listsOfCards.length] = card1;
     listsOfCards[listsOfCards.length] = card2;
     listsOfCards[listsOfCards.length] = card3;
@@ -99,8 +101,8 @@ function generateCards(){
             var templateReplaced = template.replace("__title__",cardRamdom1["title"]).replace("__desc__", cardRamdom1["desc"]).replace("__classCard__", cardRamdom1["class"]);
             $(templateReplaced).appendTo(".cardContainer").data("effect",cardRamdom1["effect"]).toggle("slide",{direction : "up"});
             nbCardSelected++;
+            $(".compteurCard").text(nbCardSelected);
             if(nbCardSelected < 6){
-                $(".compteurCard").text(nbCardSelected);
                 chooseCards();
             }else{
                 cardsDone();
@@ -117,8 +119,8 @@ function generateCards(){
             var templateReplaced = template.replace("__title__",cardRamdom2["title"]).replace("__desc__", cardRamdom2["desc"]).replace("__classCard__", cardRamdom2["class"]);
             $(templateReplaced).appendTo(".cardContainer").data("effect",cardRamdom2["effect"]).toggle("slide",{direction : "up"});
             nbCardSelected++;
+            $(".compteurCard").text(nbCardSelected);
             if(nbCardSelected < 6){
-                $(".compteurCard").text(nbCardSelected);
                 chooseCards();
             }else{
                 cardsDone();
@@ -135,8 +137,8 @@ function generateCards(){
             var templateReplaced = template.replace("__title__",cardRamdom3["title"]).replace("__desc__", cardRamdom3["desc"]).replace("__classCard__", cardRamdom3["class"]);
             $(templateReplaced).appendTo(".cardContainer").data("effect",cardRamdom3["effect"]).toggle("slide",{direction : "up"});
             nbCardSelected++;
+            $(".compteurCard").text(nbCardSelected);
             if(nbCardSelected < 6){
-                $(".compteurCard").text(nbCardSelected);
                 chooseCards();
             }else{
                 cardsDone();
@@ -149,15 +151,38 @@ function generateCards(){
     });
 
     var cardsDone = function(){
-        $("#modalCards").modal("hide");
+        $(".thirdCard").off("click");
+        $(".secondCard").off("click");
+        $(".firstCard").off("click");
+        $("#modalCards").css({
+            transition : "transform 1s",
+            transform : "rotate(360deg) scale(0.5)",
+        });
+
+        setTimeout(function(){
+            $("#modalCards").css({
+                transition : "transform 1s",
+                transform : "rotate(360deg) scale(0)",
+            });
+        },1000);
+
+        setTimeout(function(){
+            $("#modalCards").modal("hide");
+        },2000);
+
         $(".card").draggable({
             addClasses : true,
             zIndex : 1000,
             stack : "body",
+            revert : "invalid",
+            revertDuration : 250,
             drag : function(event,ui){
                 if(!ui.helper.hasClass("highlighted")){
                     ui.helper.addClass("highlighted");
                 }
+            },
+            stop : function(event,ui){
+                ui.helper.removeClass("highlighted");
             }
         });
 
@@ -177,6 +202,30 @@ function generateCards(){
                             $(this).toggleClass("col-md-offset-2");
                         });
                         activateEffect(effect);
+                        setTimeout(function(){
+                            refillPlateau();
+                            removeHighLight();
+                            var allElement = table.find(".element");
+                            allElement.each(function(i){
+                                var elementTested = $(this);
+                                var win = checkIfWin(elementTested,getPlayerClassByElement(elementTested));
+                                if(win){
+                                    setTimeout(function(){
+                                        highLightWinCombo(poolOfWinElement);
+                                    },1500);
+                                    return false;
+                                }else{
+                                    if(elementTested[0] === allElement.last()[0]){
+                                        tour++;
+                                        var winOnDot = activateDotHotEffect();
+                                        if(!winOnDot){
+                                            highLightValidePlay();
+                                            changePlayer();
+                                        }
+                                    }
+                                }
+                            });
+                        },2000);
                     });
                 });
             }
@@ -195,9 +244,11 @@ function generateCards(){
                 ligne.addClass("highlightLine");
                 ligne.on("click", function (e) {
                     var elements = $(this).find(".element");
-                    elements.removeClass("is-player-one is-player-two blocked");
+                    elements.removeClass("is-player-one is-player-two blocked",{duration : 300});
                     ligne.removeClass("highlightLine").off("click");
-                    /** TODO : Faire descendre les éléments puis check if win =) */
+                    setTimeout(function(){
+                        moveElement(elements);
+                    },400);
                 });
                 break;
 
@@ -213,34 +264,46 @@ function generateCards(){
                 });
 
                 table.find("td").on("click", function () {
-                    table.find("td").off("click");
+                    table.find("td").off("click").removeClass("highlightColumn").off("mouseout").off("mouseover");
                     var ligneStart = null;
                     var element = $(this).find(".element");
                     var position = element.data("position");
-                    table.find(".element[data-position=" + position + "]").parent().removeClass("highlightColumn").off("mouseout").off("mouseover");
                     var firstElement = null;
                     var elementsColonne = table.find(".element[data-position=" + position + "]");
                     for (var i = 0; i < elementsColonne.length; i++) {
-                        if ($(elementsColonne[i]).hasClass("is-player-one is-player-two blocked")) {
+                        if (!$(elementsColonne[i]).is(".is-player-one,.is-player-two,.blocked")) {
                             firstElement = $(elementsColonne[i]);
-                            break;
                         }
                     }
 
                     if (firstElement === null) {
                         ligneStart = 8;
                     } else {
-                        ligneStart = firstElement.data("ligne") - 1;
+                        ligneStart = firstElement.data("ligne");
                     }
 
                     var delay = 0;
                     for (var y = 0; y < 3; y++) {
-                        var elementConcerned = table.find(".element[data-position=" + position + "][data-ligne=" + ligneStart + "]");
-                        /** TODO : Animer element,check if win etc... **/
-                        ligneStart--;
-                    }
+                        setTimeout(function(ligneStart){
+                            var elementConcerned = table.find(".element[data-position=" + position + "][data-ligne=" + ligneStart + "]");
+                            elementConcerned.addClass(getPlayerClass(actualPlayer));
+                            var currentOffset = elementConcerned.offset().top;
+                            var currentWidth = elementConcerned.width();
+                            var currentHeight = elementConcerned.height();
+                            // element.attr("data-id", objectMarkedPoint["id"]);
+                            elementConcerned.css({position : 'absolute', top : 0, width : currentWidth + "px", height : currentHeight + "px"});
+                            /** propriete, durée, easing, complete */
+                            elementConcerned.animate({
+                                top : currentOffset
+                            }, 250, function() {
+                                elementConcerned.css({position:'initial', width : "100%", height : "100%"});
+                                elementConcerned.off("click");
+                            });
+                        },delay, ligneStart);
 
-                    refillPlateau();
+                        ligneStart--;
+                        delay = delay + 500;
+                    }
                 });
                 break;
 
@@ -270,10 +333,10 @@ function generateCards(){
                 break;
 
             case "bl":
-                if(actualPlayer["life"] + 15 >= 40){
+                if(actualPlayer["life"] + 10 >= 40){
                     actualPlayer["life"] = 40;
                 }else{
-                    actualPlayer["life"] = actualPlayer["life"] + 15
+                    actualPlayer["life"] = actualPlayer["life"] + 10
                 }
                 elementsPlayer = getElementPdvPlayer();
                 elementsPlayer.addClass("healingPDV");
@@ -281,7 +344,27 @@ function generateCards(){
                 elementsPlayer.removeClass("healingPDV", {duration : 350});
                 break;
 
-            case "ua":
+            case "ae":
+                var elementsDestroyed = [];
+                actualEnemy["life"] = actualEnemy["life"] - 5;
+                elementEnemy = getElementPdvEnemy();
+                elementEnemy.addClass("losingPDV");
+                elementEnemy.text(actualEnemy["life"]);
+                elementEnemy.removeClass("losingPDV", {duration : 350});
+                dotHot[dotHot.length] = {effect : "ae", target : actualEnemy, endTurn : tour + 5};
+                if(elementsEnemy.length <= 2){
+                    elementsDestroyed.concat(elementsEnemy);
+                    elementsEnemy.toggleClass(enemyClass);
+                }else {
+                    var element1Enemy = elementsEnemy[Math.floor((Math.random() * elementsEnemy.length))];
+                    elementsDestroyed[elementsDestroyed.length] = element1Enemy;
+                    $(element1Enemy).toggleClass(enemyClass);
+                    elementsEnemy = table.find("." + enemyClass);
+                    var element2Enemy = elementsEnemy[Math.floor((Math.random() * elementsEnemy.length))];
+                    elementsDestroyed[elementsDestroyed.length] = element2Enemy;
+                    $(element2Enemy).toggleClass(enemyClass);
+                }
+                moveElement(elementsDestroyed);
                 break;
 
             case "holylight":
@@ -293,9 +376,11 @@ function generateCards(){
                 break;
 
             case "immolate":
+                dotHot[dotHot.length] = {effect : "immolate", target : actualEnemy, endTurn : tour + 3};
                 break;
 
             case "renov":
+                dotHot[dotHot.length] = {effect : "renov", target : actualPlayer, endTurn : tour + 3};
                 break;
 
             case "et":
@@ -306,39 +391,124 @@ function generateCards(){
                 elementEnemy.removeClass("losingPDV", {duration : 350});
                 let selectedElement = elementsEnemy[Math.floor((Math.random() * elementsEnemy.length))];
                 $(selectedElement).removeClass(enemyClass);
+                moveElement(selectedElement);
                 break;
 
             case "aftereffect":
-                actualEnemy["life"] = actualEnemy["life"] - 10;
+                actualEnemy["life"] = actualEnemy["life"] - 5;
                 elementEnemy = getElementPdvEnemy();
                 elementEnemy.addClass("losingPDV");
                 elementEnemy.text(actualEnemy["life"]);
                 elementEnemy.removeClass("losingPDV", {duration : 350});
-                if(elementsPlayer.length <= 4){
-                    elementsPlayer.toggleClass(playerClass + " " + enemyClass);
+                if(elementsPlayer.length <= 2){
+                    elementsPlayer.toggleClass(playerClass + " " + enemyClass,300);
                 }else{
                     var element1 = elementsPlayer[Math.floor((Math.random() * elementsPlayer.length))];
-                    $(element1).toggleClass(playerClass + " " + enemyClass);
+                    $(element1).toggleClass(playerClass + " " + enemyClass,300);
                     elementsPlayer = table.find("." + playerClass);
                     var element2 = elementsPlayer[Math.floor((Math.random() * elementsPlayer.length))];
-                    $(element2).toggleClass(playerClass + " " + enemyClass);
-                    elementsPlayer = table.find("." + playerClass);
-                    var element3 = elementsPlayer[Math.floor((Math.random() * elementsPlayer.length))];
-                    $(element3).toggleClass(playerClass + " " + enemyClass);
-                    elementsPlayer = table.find("." + playerClass);
-                    var element4 = elementsPlayer[Math.floor((Math.random() * elementsPlayer.length))];
-                    $(element4).toggleClass(playerClass + " " + enemyClass);
+                    $(element2).toggleClass(playerClass + " " + enemyClass,300);
+                    // elementsPlayer = table.find("." + playerClass);
+                    // var element3 = elementsPlayer[Math.floor((Math.random() * elementsPlayer.length))];
+                    // $(element3).toggleClass(playerClass + " " + enemyClass);
+                    // elementsPlayer = table.find("." + playerClass);
+                    // var element4 = elementsPlayer[Math.floor((Math.random() * elementsPlayer.length))];
+                    // $(element4).toggleClass(playerClass + " " + enemyClass);
                 }
 
                 break;
 
             case "blackhole":
-                console.log(effect);
+                var possibleClass = ["is-player-one", "is-player-two", "blocked"];
+                table.find(".element").each(function(e){
+                    var currentElement = $(this);
+                    if(currentElement.is(".is-player-one,.is-player-two,.blocked")){
+                        var ramdomTransform = possibleClass[Math.floor((Math.random() * possibleClass.length))];
+                        currentElement.removeClass("is-player-one is-player-two blocked", 300).addClass(ramdomTransform,300);
+                    }
+                });
                 break;
 
             case "foresight":
-                console.log(effect);
+                dotHot[dotHot.length] = {effect : "foresight", target : actualEnemy, endTurn : tour + 3};
                 break;
+        }
+    }
+}
+
+function moveElement(element){
+    var elementTargeted;
+    var elementMoving;
+    var indexLigne;
+    if(element instanceof Array || (element.jquery && element.length > 1)){
+        $(element).each(function(e){
+            var currentElement = $(this);
+            var position = currentElement.data("position");
+            var ligneStart = currentElement.data("ligne") - 1;
+            for(var i = ligneStart; i >= 0; i--){
+                indexLigne = i+1;
+                do{
+                    var elementTested = table.find(".element[data-ligne="+indexLigne+"][data-position='"+position+"']");
+                    if(!elementTested.is(".is-player-one,.is-player-two,.blocked")){
+                        elementTargeted = elementTested;
+                    }
+                    indexLigne++;
+                }while(indexLigne <= 8);
+                elementMoving = table.find(".element[data-ligne='"+i+"'][data-position='"+position+"']");
+                if(elementMoving.is(".is-player-one,.is-player-two,.blocked")){
+                    var offsetTopNextPosition = elementTargeted.offset().top;
+                    elementMoving.css({
+                        position: 'absolute',
+                        top: elementMoving.offset().top,
+                        width: elementMoving.width() + "px",
+                        height: elementMoving.height() + "px"
+                    });
+                    elementMoving.animate({
+                        top: offsetTopNextPosition
+                    }, {
+                        duration : 500,
+                        complete : function(elementMoving,elementTargeted){
+                            elementMoving.css({position: 'initial', width: "100%", height: "100%"});
+                            elementTargeted.addClass(elementMoving.attr("class"));
+                            elementMoving.removeClass("is-player-one is-player-two blocked");
+                        }(elementMoving,elementTargeted)
+                    });
+                }
+            }
+        });
+    }else{
+        var currentElement = $(element);
+        var position = currentElement.data("position");
+        var ligneStart = currentElement.data("ligne") - 1;
+        for(var i = ligneStart; i >= 0; i--){
+            indexLigne = i+1;
+            do{
+                var elementTested = table.find(".element[data-ligne="+indexLigne+"][data-position='"+position+"']");
+                if(!elementTested.is(".is-player-one,.is-player-two,.blocked")){
+                    elementTargeted = elementTested;
+                }
+                indexLigne++;
+            }while(indexLigne <= 8);
+            elementMoving = table.find(".element[data-ligne='"+i+"'][data-position='"+position+"']");
+            if(elementMoving.is(".is-player-one,.is-player-two,.blocked")){
+                var offsetTopNextPosition = elementTargeted.offset().top;
+                elementMoving.css({
+                    position: 'absolute',
+                    top: elementMoving.offset().top,
+                    width: elementMoving.width() + "px",
+                    height: elementMoving.height() + "px"
+                });
+                elementMoving.animate({
+                    top: offsetTopNextPosition
+                }, {
+                    duration : 500,
+                    complete : function (elementMoving,elementTargeted) {
+                        elementMoving.css({position: 'initial', width: "100%", height: "100%"});
+                        elementTargeted.addClass(elementMoving.attr("class"));
+                        elementMoving.removeClass("is-player-one is-player-two blocked");
+                    }(elementMoving,elementTargeted)
+                });
+            }
         }
     }
 }
@@ -521,9 +691,13 @@ function init(){
                 },1500);
             }else{
                 setTimeout(function(){
-                    changePlayer();
-                    highLightValidePlay();
-                    table.find("tbody").unblock();
+                    tour++;
+                    var winOnDot = activateDotHotEffect();
+                    if(!winOnDot){
+                        changePlayer();
+                        highLightValidePlay();
+                        table.unblock();
+                    }
                 },1500);
             }
         });
@@ -566,8 +740,8 @@ function initPlateau(){
     }
 }
 
-function victory(){
-    return actualEnemy["life"] <= 0;
+function victory(target){
+    return target["life"] <= 0;
 }
 
 function initTable(){
@@ -705,7 +879,7 @@ function changeEnemy(player){
 
 function checkIfPossibleAction(element){
     $("#loading").toggleClass("hidden");
-    table.find("tbody").block({
+    table.block({
         message : null,
         css : {
             backgroundColor : "#FEFEFE"
@@ -737,9 +911,13 @@ function checkIfPossibleAction(element){
                         },1500);
                     }else{
                         setTimeout(function(){
-                            changePlayer();
-                            highLightValidePlay();
-                            table.find("tbody").unblock();
+                            tour++;
+                            var winOnDot = activateDotHotEffect();
+                            if(!winOnDot){
+                                changePlayer();
+                                highLightValidePlay();
+                                table.unblock();
+                            }
                         },1500);
                     }
                 }
@@ -750,7 +928,7 @@ function checkIfPossibleAction(element){
         error : function () {
             changeAlert("alert-danger", actualPlayer["name"] + " souhaite réaliser une action impossible." +
                 "Veuillez sélectionner un rond valide.");
-            table.find("tbody").unblock();
+            table.unblock();
         },
         complete: function(){
             $("#loading").toggleClass("hidden");
@@ -957,6 +1135,14 @@ function getElementPdvEnemy(){
     }
 }
 
+function getElementPdvByTarget(target){
+    if(target === player1){
+        return $(".currentPdvPlayer1");
+    }else{
+        return $(".currentPdvPlayer2");
+    }
+}
+
 function highLightWinCombo(listOfElements){
     table.find(".element").each(function(e) {
         if(!inArray($(this)[0], listOfElements)){
@@ -1065,7 +1251,7 @@ function highLightWinCombo(listOfElements){
         }
 
         setTimeout(removeWillMoveClass, 1000);
-        if(victory()){
+        if(victory(actualEnemy)){
             changeAlert("alert-success",actualPlayer["name"] + " a gagné!");
             disableTable();
         }else{
@@ -1100,10 +1286,14 @@ function highLightWinCombo(listOfElements){
                 }
 
                 if($(this)[0] === allElement.last()[0]){
-                    highLightValidePlay();
-                    changePlayer();
+                    tour++;
                     refillPlateau();
-                    table.find("tbody").unblock();
+                    var winOnDot = activateDotHotEffect();
+                    if(!winOnDot){
+                        highLightValidePlay();
+                        changePlayer();
+                        table.unblock();
+                    }
                 }
             });
         }
@@ -1146,12 +1336,67 @@ function refillPlateau(){
             method : "POST",
             data : {idPlayer1 : player1["id"], idPlayer2 : player2["id"], oldPlateau : oldPlateau, plateau : plateau},
             success : function(data){
-                console.log(data);
             },
             complete : function(){
                 $("#loading").toggleClass("hidden");
             }
         });
     }
+}
+
+function activateDotHotEffect(){
+    dotHot.forEach(function(e){
+        var target = e["target"];
+        var pdvElement = getElementPdvByTarget(target);
+        var indexOfEffect = dotHot.indexOf(e);
+        switch (e["effect"]) {
+            case "immolate":
+                if (tour < e["endTurn"]) {
+                    target["life"] = target["life"] - 5;
+                    pdvElement.addClass("losingPDV");
+                    pdvElement.text(target["life"]);
+                    pdvElement.removeClass("losingPDV", {duration : 350});
+                }else{
+                    dotHot.splice(indexOfEffect,indexOfEffect);
+                }
+               break;
+            case "foresight":
+                if(tour === e["endTurn"]){
+                    target["life"] = target["life"] - 5;
+                    pdvElement.addClass("losingPDV");
+                    pdvElement.text(target["life"]);
+                    pdvElement.removeClass("losingPDV", {duration : 350});
+                    dotHot.splice(indexOfEffect,indexOfEffect);
+                }
+                break;
+            case "renov":
+                if(tour < e["endTurn"]){
+                    target["life"] = target["life"] + 5;
+                    pdvElement.addClass("healingPDV");
+                    pdvElement.text(target["life"]);
+                    pdvElement.removeClass("healingPDV", {duration : 350});
+                }else{
+                    dotHot.splice(indexOfEffect,indexOfEffect);
+                }
+                break;
+
+            case "ae":
+                if(tour < e["endTurn"]){
+                    target["life"] = target["life"] - 2;
+                    pdvElement.addClass("losingPDV");
+                    pdvElement.text(target["life"]);
+                    pdvElement.removeClass("losingPDV", {duration : 350});
+                }else{
+                    dotHot.splice(indexOfEffect,indexOfEffect);
+                }
+                break;
+       }
+
+       if(victory(target)){
+            return true;
+       }
+    });
+
+    return false;
 }
 
